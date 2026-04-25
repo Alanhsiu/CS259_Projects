@@ -1,0 +1,584 @@
+<!DOCTYPE html><html><head>
+      <title>report_part2</title>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      
+      <link rel="stylesheet" href="file:////Users/alanhsiu/.vscode/extensions/shd101wyy.markdown-preview-enhanced-0.8.24/crossnote/dependencies/katex/katex.min.css">
+      
+      
+      
+      
+      
+      
+      
+      <style>
+      code[class*=language-],pre[class*=language-]{color:#333;background:0 0;font-family:Consolas,"Liberation Mono",Menlo,Courier,monospace;text-align:left;white-space:pre;word-spacing:normal;word-break:normal;word-wrap:normal;line-height:1.4;-moz-tab-size:8;-o-tab-size:8;tab-size:8;-webkit-hyphens:none;-moz-hyphens:none;-ms-hyphens:none;hyphens:none}pre[class*=language-]{padding:.8em;overflow:auto;border-radius:3px;background:#f5f5f5}:not(pre)>code[class*=language-]{padding:.1em;border-radius:.3em;white-space:normal;background:#f5f5f5}.token.blockquote,.token.comment{color:#969896}.token.cdata{color:#183691}.token.doctype,.token.macro.property,.token.punctuation,.token.variable{color:#333}.token.builtin,.token.important,.token.keyword,.token.operator,.token.rule{color:#a71d5d}.token.attr-value,.token.regex,.token.string,.token.url{color:#183691}.token.atrule,.token.boolean,.token.code,.token.command,.token.constant,.token.entity,.token.number,.token.property,.token.symbol{color:#0086b3}.token.prolog,.token.selector,.token.tag{color:#63a35c}.token.attr-name,.token.class,.token.class-name,.token.function,.token.id,.token.namespace,.token.pseudo-class,.token.pseudo-element,.token.url-reference .token.variable{color:#795da3}.token.entity{cursor:help}.token.title,.token.title .token.punctuation{font-weight:700;color:#1d3e81}.token.list{color:#ed6a43}.token.inserted{background-color:#eaffea;color:#55a532}.token.deleted{background-color:#ffecec;color:#bd2c00}.token.bold{font-weight:700}.token.italic{font-style:italic}.language-json .token.property{color:#183691}.language-markup .token.tag .token.punctuation{color:#333}.language-css .token.function,code.language-css{color:#0086b3}.language-yaml .token.atrule{color:#63a35c}code.language-yaml{color:#183691}.language-ruby .token.function{color:#333}.language-markdown .token.url{color:#795da3}.language-makefile .token.symbol{color:#795da3}.language-makefile .token.variable{color:#183691}.language-makefile .token.builtin{color:#0086b3}.language-bash .token.keyword{color:#0086b3}pre[data-line]{position:relative;padding:1em 0 1em 3em}pre[data-line] .line-highlight-wrapper{position:absolute;top:0;left:0;background-color:transparent;display:block;width:100%}pre[data-line] .line-highlight{position:absolute;left:0;right:0;padding:inherit 0;margin-top:1em;background:hsla(24,20%,50%,.08);background:linear-gradient(to right,hsla(24,20%,50%,.1) 70%,hsla(24,20%,50%,0));pointer-events:none;line-height:inherit;white-space:pre}pre[data-line] .line-highlight:before,pre[data-line] .line-highlight[data-end]:after{content:attr(data-start);position:absolute;top:.4em;left:.6em;min-width:1em;padding:0 .5em;background-color:hsla(24,20%,50%,.4);color:#f4f1ef;font:bold 65%/1.5 sans-serif;text-align:center;vertical-align:.3em;border-radius:999px;text-shadow:none;box-shadow:0 1px #fff}pre[data-line] .line-highlight[data-end]:after{content:attr(data-end);top:auto;bottom:.4em}html body{font-family:'Helvetica Neue',Helvetica,'Segoe UI',Arial,freesans,sans-serif;font-size:16px;line-height:1.6;color:#333;background-color:#fff;overflow:initial;box-sizing:border-box;word-wrap:break-word}html body>:first-child{margin-top:0}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{line-height:1.2;margin-top:1em;margin-bottom:16px;color:#000}html body h1{font-size:2.25em;font-weight:300;padding-bottom:.3em}html body h2{font-size:1.75em;font-weight:400;padding-bottom:.3em}html body h3{font-size:1.5em;font-weight:500}html body h4{font-size:1.25em;font-weight:600}html body h5{font-size:1.1em;font-weight:600}html body h6{font-size:1em;font-weight:600}html body h1,html body h2,html body h3,html body h4,html body h5{font-weight:600}html body h5{font-size:1em}html body h6{color:#5c5c5c}html body strong{color:#000}html body del{color:#5c5c5c}html body a:not([href]){color:inherit;text-decoration:none}html body a{color:#08c;text-decoration:none}html body a:hover{color:#00a3f5;text-decoration:none}html body img{max-width:100%}html body>p{margin-top:0;margin-bottom:16px;word-wrap:break-word}html body>ol,html body>ul{margin-bottom:16px}html body ol,html body ul{padding-left:2em}html body ol.no-list,html body ul.no-list{padding:0;list-style-type:none}html body ol ol,html body ol ul,html body ul ol,html body ul ul{margin-top:0;margin-bottom:0}html body li{margin-bottom:0}html body li.task-list-item{list-style:none}html body li>p{margin-top:0;margin-bottom:0}html body .task-list-item-checkbox{margin:0 .2em .25em -1.8em;vertical-align:middle}html body .task-list-item-checkbox:hover{cursor:pointer}html body blockquote{margin:16px 0;font-size:inherit;padding:0 15px;color:#5c5c5c;background-color:#f0f0f0;border-left:4px solid #d6d6d6}html body blockquote>:first-child{margin-top:0}html body blockquote>:last-child{margin-bottom:0}html body hr{height:4px;margin:32px 0;background-color:#d6d6d6;border:0 none}html body table{margin:10px 0 15px 0;border-collapse:collapse;border-spacing:0;display:block;width:100%;overflow:auto;word-break:normal;word-break:keep-all}html body table th{font-weight:700;color:#000}html body table td,html body table th{border:1px solid #d6d6d6;padding:6px 13px}html body dl{padding:0}html body dl dt{padding:0;margin-top:16px;font-size:1em;font-style:italic;font-weight:700}html body dl dd{padding:0 16px;margin-bottom:16px}html body code{font-family:Menlo,Monaco,Consolas,'Courier New',monospace;font-size:.85em;color:#000;background-color:#f0f0f0;border-radius:3px;padding:.2em 0}html body code::after,html body code::before{letter-spacing:-.2em;content:'\00a0'}html body pre>code{padding:0;margin:0;word-break:normal;white-space:pre;background:0 0;border:0}html body .highlight{margin-bottom:16px}html body .highlight pre,html body pre{padding:1em;overflow:auto;line-height:1.45;border:#d6d6d6;border-radius:3px}html body .highlight pre{margin-bottom:0;word-break:normal}html body pre code,html body pre tt{display:inline;max-width:initial;padding:0;margin:0;overflow:initial;line-height:inherit;word-wrap:normal;background-color:transparent;border:0}html body pre code:after,html body pre code:before,html body pre tt:after,html body pre tt:before{content:normal}html body blockquote,html body dl,html body ol,html body p,html body pre,html body ul{margin-top:0;margin-bottom:16px}html body kbd{color:#000;border:1px solid #d6d6d6;border-bottom:2px solid #c7c7c7;padding:2px 4px;background-color:#f0f0f0;border-radius:3px}@media print{html body{background-color:#fff}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{color:#000;page-break-after:avoid}html body blockquote{color:#5c5c5c}html body pre{page-break-inside:avoid}html body table{display:table}html body img{display:block;max-width:100%;max-height:100%}html body code,html body pre{word-wrap:break-word;white-space:pre}}.markdown-preview{width:100%;height:100%;box-sizing:border-box}.markdown-preview ul{list-style:disc}.markdown-preview ul ul{list-style:circle}.markdown-preview ul ul ul{list-style:square}.markdown-preview ol{list-style:decimal}.markdown-preview ol ol,.markdown-preview ul ol{list-style-type:lower-roman}.markdown-preview ol ol ol,.markdown-preview ol ul ol,.markdown-preview ul ol ol,.markdown-preview ul ul ol{list-style-type:lower-alpha}.markdown-preview .newpage,.markdown-preview .pagebreak{page-break-before:always}.markdown-preview pre.line-numbers{position:relative;padding-left:3.8em;counter-reset:linenumber}.markdown-preview pre.line-numbers>code{position:relative}.markdown-preview pre.line-numbers .line-numbers-rows{position:absolute;pointer-events:none;top:1em;font-size:100%;left:0;width:3em;letter-spacing:-1px;border-right:1px solid #999;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.markdown-preview pre.line-numbers .line-numbers-rows>span{pointer-events:none;display:block;counter-increment:linenumber}.markdown-preview pre.line-numbers .line-numbers-rows>span:before{content:counter(linenumber);color:#999;display:block;padding-right:.8em;text-align:right}.markdown-preview .mathjax-exps .MathJax_Display{text-align:center!important}.markdown-preview:not([data-for=preview]) .code-chunk .code-chunk-btn-group{display:none}.markdown-preview:not([data-for=preview]) .code-chunk .status{display:none}.markdown-preview:not([data-for=preview]) .code-chunk .output-div{margin-bottom:16px}.markdown-preview .md-toc{padding:0}.markdown-preview .md-toc .md-toc-details{margin:0;padding:0;border:none}.markdown-preview .md-toc summary.md-toc-link-wrapper{cursor:pointer;list-style-position:outside}.markdown-preview .md-toc summary.md-toc-link-wrapper::marker{font-size:.85em}.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link{display:inline;padding:.25rem 0}.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link div,.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link p{display:inline}.markdown-preview .md-toc .md-toc-link-wrapper.highlighted .md-toc-link{font-weight:800}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='0']{margin-left:12px}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='1']{margin-left:28px}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='2']{margin-left:44px}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='3']{margin-left:60px}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='4']{margin-left:76px}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='5']{margin-left:80px}.scrollbar-style::-webkit-scrollbar{width:8px}.scrollbar-style::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}.scrollbar-style::-webkit-scrollbar-thumb{border-radius:5px;background-color:rgba(150,150,150,.66);border:4px solid rgba(150,150,150,.66);background-clip:content-box}html body[for=html-export]:not([data-presentation-mode]){position:relative;width:100%;height:100%;top:0;left:0;margin:0;padding:0;overflow:auto}html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{position:relative;top:0;min-height:100vh}@media screen and (min-width:914px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{padding:2em calc(50% - 457px + 2em)}}@media screen and (max-width:914px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{font-size:14px!important;padding:1em}}@media print{html body[for=html-export]:not([data-presentation-mode]) #sidebar-toc-btn{display:none}}html body[for=html-export]:not([data-presentation-mode]) #sidebar-toc-btn{position:fixed;bottom:8px;left:8px;font-size:28px;cursor:pointer;color:inherit;z-index:99;width:32px;text-align:center;opacity:.4}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] #sidebar-toc-btn{opacity:1}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc{position:fixed;top:0;left:0;width:300px;height:100%;padding:32px 0 48px 0;font-size:14px;box-shadow:0 0 4px rgba(150,150,150,.33);box-sizing:border-box;overflow:auto;background-color:inherit}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar{width:8px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-thumb{border-radius:5px;background-color:rgba(150,150,150,.66);border:4px solid rgba(150,150,150,.66);background-clip:content-box}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc a{text-decoration:none}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc{padding:0 16px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-details{margin:0;padding:0;border:none}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link{display:inline;padding:.25rem 0}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link div,html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link p{display:inline}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper.highlighted .md-toc-link{font-weight:800}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='0']{padding-left:0}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='1']{padding-left:16px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='2']{padding-left:32px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='3']{padding-left:48px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='4']{padding-left:64px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='5']{padding-left:80px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{left:300px;width:calc(100% - 300px);padding:2em calc(50% - 457px - 300px / 2);margin:0;box-sizing:border-box}@media screen and (max-width:1274px){html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{width:100%}}html body[for=html-export]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .markdown-preview{left:50%;transform:translateX(-50%)}html body[for=html-export]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .md-sidebar-toc{display:none}
+/* Please visit the URL below for more information: */
+/*   https://shd101wyy.github.io/markdown-preview-enhanced/#/customize-css */
+
+      </style>
+      <script type="text/javascript">
+  document.addEventListener("DOMContentLoaded", function () {
+    // your code here
+  });
+</script>
+    </head>
+    <body for="html-export">
+      <div class="crossnote markdown-preview  ">
+      
+<h1 id="cs259-mini-project-1--part-2-single-head-attention-cuda-kernels">CS259 Mini-Project 1 — Part 2: Single-Head Attention CUDA Kernels </h1>
+<h2 id="1-hardware-and-theoretical-bounds">1. Hardware and Theoretical Bounds </h2>
+<p><strong>GPU</strong>: NVIDIA TITAN V (Volta GV100)</p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FP32 peak compute</td>
+<td>13,800 GFLOPS (13.8 TFLOPS)</td>
+</tr>
+<tr>
+<td>HBM2 peak bandwidth</td>
+<td>652.8 GB/s</td>
+</tr>
+<tr>
+<td>L2 cache</td>
+<td>4.5 MB</td>
+</tr>
+<tr>
+<td>Shared memory / SM</td>
+<td>96 KB</td>
+</tr>
+<tr>
+<td>SMs</td>
+<td>80</td>
+</tr>
+<tr>
+<td>Ridge point</td>
+<td>21.1 FLOPs/byte</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Theoretical FLOPs</strong> (D = 64, causal masking):</p>
+<table>
+<thead>
+<tr>
+<th>Workload</th>
+<th>Formula</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Prefill S=4096</td>
+<td>2·D·S·(S+1)</td>
+<td>2.15 GFLOP</td>
+</tr>
+<tr>
+<td>Prefill S=65536</td>
+<td>2·D·S·(S+1)</td>
+<td>549.8 GFLOP</td>
+</tr>
+<tr>
+<td>Decode C=4096</td>
+<td>4·C·D</td>
+<td>1.05 MFLOP</td>
+</tr>
+<tr>
+<td>Decode C=65536</td>
+<td>4·C·D</td>
+<td>16.8 MFLOP</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Theoretical arithmetic intensity</strong> (assuming each matrix element read once):</p>
+<table>
+<thead>
+<tr>
+<th>Workload</th>
+<th>I_arith</th>
+<th>Region</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Prefill S=4096</td>
+<td>537 FLOPs/byte</td>
+<td>compute-bound</td>
+</tr>
+<tr>
+<td>Prefill S=65536</td>
+<td>8590 FLOPs/byte</td>
+<td>compute-bound</td>
+</tr>
+<tr>
+<td>Decode (any C)</td>
+<td>0.52 FLOPs/byte</td>
+<td>memory-bound</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="2-implementation-overview">2. Implementation Overview </h2>
+<h3 id="21-prefill-kernels">2.1 Prefill Kernels </h3>
+<p><strong><code>prefill_naive</code></strong> (baseline, S ≤ 4096 only)</p>
+<ul>
+<li>Grid: (S,) — one block per query row. Block: 256 threads.</li>
+<li>Allocates an S×S global score buffer. For S=4096 this is 67 MB; for S=65536 it would require 17.2 GB, exceeding TITAN V's 12 GB HBM — this kernel is skipped for the large-S workload.</li>
+<li>Three passes: (1) dot-products → score buffer, (2) global max + exp/sum for softmax, (3) weighted V accumulation.</li>
+</ul>
+<p><strong><code>prefill_flash</code></strong> (tile = 16)</p>
+<ul>
+<li>Implements Flash Attention with online softmax, eliminating the score buffer entirely.</li>
+<li>Grid: (S,), Block: D=64 threads — one thread per output dimension.</li>
+<li>Loads K/V in tiles of 16 rows into shared memory. For each key within a tile, the score (a dot product across all D dimensions) is reduced via <code>__shfl_down_sync</code> (intra-warp) and a two-entry shared array <code>swarp[2]</code> (cross-warp), then the running state (m, sum, out) is updated in registers using the online softmax correction formula: m_new = max(m, score); corr = exp(m − m_new); s = s·corr + exp(score − m_new).</li>
+</ul>
+<p><strong><code>prefill_flash_v2</code></strong> (tile = 32)</p>
+<ul>
+<li>Identical algorithm to <code>prefill_flash</code> but doubles the tile size to 32 rows.</li>
+<li>The 2× larger tile halves the number of outer-loop iterations and the associated <code>__syncthreads()</code> barriers and tile-load overhead, reducing per-query instruction count.</li>
+<li>Shared memory doubles from ~8 KB to ~16 KB per block, which reduces the number of blocks that can reside simultaneously per SM (occupancy penalty).</li>
+</ul>
+<h3 id="22-decode-kernels">2.2 Decode Kernels </h3>
+<p><strong><code>decode_naive</code></strong> (baseline)</p>
+<ul>
+<li>Grid: (1,) — single block with 256 threads. Maintains a global score buffer of size C.</li>
+<li>Three-pass softmax over all C context positions. With only one block, only one SM is used, leaving 79 of 80 SMs idle.</li>
+</ul>
+<p><strong><code>decode_flash</code></strong> (2-phase Flash Decoding, slice = 256)</p>
+<ul>
+<li>Phase 1: Each of ⌈C/256⌉ blocks processes a slice of 256 context positions using online softmax, writing local (m, d, O_partial) to global memory.</li>
+<li>Phase 2: A single block merges all partial results using the same online-softmax merge formula: for each partial block b, m_new = max(m, m_b), then rescale and accumulate.</li>
+<li>For C=65536 this launches 256 blocks, distributing work across all 80 SMs — though at only ~10% occupancy per SM due to the small block size (64 threads vs. the 2048-thread SM capacity).</li>
+</ul>
+<p><strong><code>decode_flash_v2</code></strong> (slice = 256, float4 loads)</p>
+<ul>
+<li>Identical 2-phase structure and slice size as <code>decode_flash</code>.</li>
+<li>Replaces scalar K/V loads with 128-bit <code>float4</code> loads, issuing one memory transaction per 4 floats. This reduces the number of load instructions and issues wider transactions to the memory subsystem.</li>
+</ul>
+<hr>
+<h2 id="3-performance-results">3. Performance Results </h2>
+<h3 id="31-benchmark-timing">3.1 Benchmark Timing </h3>
+<table>
+<thead>
+<tr>
+<th>Kernel</th>
+<th>Size</th>
+<th>Time (ms)</th>
+<th>GFLOPS</th>
+<th>Speedup vs naive</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>prefill_naive</td>
+<td>S=4096</td>
+<td>7.356</td>
+<td>292.0</td>
+<td>1.00×</td>
+</tr>
+<tr>
+<td>prefill_flash</td>
+<td>S=4096</td>
+<td>5.444</td>
+<td>394.6</td>
+<td><strong>1.35×</strong></td>
+</tr>
+<tr>
+<td>prefill_flash_v2</td>
+<td>S=4096</td>
+<td>8.433</td>
+<td>254.7</td>
+<td>0.87×</td>
+</tr>
+<tr>
+<td>prefill_naive</td>
+<td>S=65536</td>
+<td>—</td>
+<td>—</td>
+<td>N/A (OOM)</td>
+</tr>
+<tr>
+<td>prefill_flash</td>
+<td>S=65536</td>
+<td>1406.6</td>
+<td>390.8</td>
+<td>—</td>
+</tr>
+<tr>
+<td>prefill_flash_v2</td>
+<td>S=65536</td>
+<td>2128.0</td>
+<td>258.4</td>
+<td>0.66× vs flash</td>
+</tr>
+<tr>
+<td>decode_naive</td>
+<td>C=4096</td>
+<td>0.417</td>
+<td>2.52</td>
+<td>1.00×</td>
+</tr>
+<tr>
+<td>decode_flash</td>
+<td>C=4096</td>
+<td>0.109</td>
+<td>9.66</td>
+<td><strong>3.83×</strong></td>
+</tr>
+<tr>
+<td>decode_flash_v2</td>
+<td>C=4096</td>
+<td>0.106</td>
+<td>9.85</td>
+<td><strong>3.91×</strong></td>
+</tr>
+<tr>
+<td>decode_naive</td>
+<td>C=65536</td>
+<td>8.700</td>
+<td>1.93</td>
+<td>1.00×</td>
+</tr>
+<tr>
+<td>decode_flash</td>
+<td>C=65536</td>
+<td>0.186</td>
+<td>90.0</td>
+<td><strong>46.8×</strong></td>
+</tr>
+<tr>
+<td>decode_flash_v2</td>
+<td>C=65536</td>
+<td>0.183</td>
+<td>91.5</td>
+<td><strong>47.5×</strong></td>
+</tr>
+</tbody>
+</table>
+<h3 id="32-ncu-profiling-data">3.2 NCU Profiling Data </h3>
+<table>
+<thead>
+<tr>
+<th>Kernel</th>
+<th>Size</th>
+<th>DRAM Read</th>
+<th>DRAM Write</th>
+<th>ffma count</th>
+<th>Measured AI (FLOPs/B)</th>
+<th>Occupancy</th>
+<th>DRAM BW%</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>prefill_naive</td>
+<td>S=4096</td>
+<td>33.88 MB</td>
+<td>47.76 MB</td>
+<td>1,149M</td>
+<td>28.2</td>
+<td>47.88%</td>
+<td>1.66%</td>
+</tr>
+<tr>
+<td>prefill_flash</td>
+<td>S=4096</td>
+<td>3.15 MB</td>
+<td>1.19 MB</td>
+<td>5,371M</td>
+<td>2,475</td>
+<td>29.71%</td>
+<td>0.12%</td>
+</tr>
+<tr>
+<td>prefill_flash_v2</td>
+<td>S=4096</td>
+<td>3.15 MB</td>
+<td>1.20 MB</td>
+<td>5,371M</td>
+<td>2,469</td>
+<td>14.57%</td>
+<td>0.08%</td>
+</tr>
+<tr>
+<td>prefill_flash</td>
+<td>S=65536</td>
+<td>742.72 GB</td>
+<td>18.21 MB</td>
+<td>1,374B</td>
+<td>3.70</td>
+<td>34.08%</td>
+<td>80.90%</td>
+</tr>
+<tr>
+<td>prefill_flash_v2</td>
+<td>S=65536</td>
+<td>11.56 GB</td>
+<td>18.21 MB</td>
+<td>1,374B</td>
+<td>237</td>
+<td>15.57%</td>
+<td>0.83%</td>
+</tr>
+<tr>
+<td>decode_naive</td>
+<td>C=4096</td>
+<td>2.10 MB</td>
+<td>0.51 KB</td>
+<td>561K</td>
+<td>0.53</td>
+<td>7.30%</td>
+<td>0.60%</td>
+</tr>
+<tr>
+<td>decode_flash</td>
+<td>C=4096</td>
+<td>2.10 MB</td>
+<td>1.28 KB</td>
+<td>2,621K</td>
+<td>2.49</td>
+<td>3.12%</td>
+<td>2.64%</td>
+</tr>
+<tr>
+<td>decode_flash_v2</td>
+<td>C=4096</td>
+<td>2.11 MB</td>
+<td>1.02 KB</td>
+<td>2,621K</td>
+<td>2.48</td>
+<td>3.12%</td>
+<td>2.93%</td>
+</tr>
+<tr>
+<td>decode_naive</td>
+<td>C=65536</td>
+<td>33.96 MB</td>
+<td>1.90 MB</td>
+<td>8,978K</td>
+<td>0.50</td>
+<td>7.30%</td>
+<td>0.63%</td>
+</tr>
+<tr>
+<td>decode_flash</td>
+<td>C=65536</td>
+<td>33.56 MB</td>
+<td>1.44 MB</td>
+<td>41,943K</td>
+<td>2.40</td>
+<td>9.89%</td>
+<td>38.29%</td>
+</tr>
+<tr>
+<td>decode_flash_v2</td>
+<td>C=65536</td>
+<td>33.56 MB</td>
+<td>1.44 MB</td>
+<td>41,943K</td>
+<td>2.40</td>
+<td>9.96%</td>
+<td>40.07%</td>
+</tr>
+</tbody>
+</table>
+<p><em>Measured AI = (ffma_count × 2) / (DRAM_read + DRAM_write)</em></p>
+<hr>
+<h2 id="4-analysis">4. Analysis </h2>
+<h3 id="41-prefill--necessity-of-flash-attention">4.1 Prefill — necessity of Flash Attention </h3>
+<p>Standard attention for S=65536 requires storing the full S×S score matrix:<br>
+65536² × 4 bytes = <strong>17.2 GB</strong>, which exceeds TITAN V's 12 GB HBM. The kernel cannot even be launched.<br>
+Flash Attention processes K and V in tiles and maintains only a scalar running state (m, d, out) per thread, requiring O(tile · D) shared memory regardless of S. This makes arbitrarily long sequences feasible.</p>
+<h3 id="42-prefill--occupancy-from-first-principles">4.2 Prefill — occupancy from first principles </h3>
+<p>Occupancy is constrained by shared memory per SM (96 KB) and the smem each block allocates:</p>
+<table>
+<thead>
+<tr>
+<th>Kernel</th>
+<th>smem / block</th>
+<th>Max blocks / SM (96 KB ÷ smem)</th>
+<th>Threads / SM</th>
+<th>Theoretical occupancy</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>prefill_flash</td>
+<td>8,208 B</td>
+<td>⌊96 KB / 8208 B⌋ = 11</td>
+<td>11 × 64 = 704</td>
+<td>704 / 2048 = <strong>34.4%</strong></td>
+</tr>
+<tr>
+<td>prefill_flash_v2</td>
+<td>16,400 B</td>
+<td>⌊96 KB / 16400 B⌋ = 5</td>
+<td>5 × 64 = 320</td>
+<td>320 / 2048 = <strong>15.6%</strong></td>
+</tr>
+</tbody>
+</table>
+<p>NCU confirms: prefill_flash occupancy = 29.7%, prefill_flash_v2 = 14.6% — closely matching the smem-limited theoretical values. Doubling the tile from 16 to 32 doubles the smem and roughly halves occupancy. This is the root cause of flash_v2's underperformance.</p>
+<h3 id="43-prefill--compute-bound-vs-memory-bound">4.3 Prefill — compute-bound vs memory-bound </h3>
+<p><strong>S=4096 — compute-bound</strong></p>
+<p>Both flash kernels show measured AI ≈ 2,470 FLOPs/byte, far above the ridge point (21.1). DRAM throughput is below 0.12%; essentially all data fits in L1/L2 cache. Performance is compute-limited:</p>
+<ul>
+<li><code>prefill_flash</code>: sm__throughput = 57.5% → 395 GFLOPS (2.9% of FP32 peak). The bottleneck is the online softmax serial dependency chain: each iteration must complete m_new → corr → es → s_update → o_update before the next key can begin, preventing instruction-level pipelining.</li>
+<li><code>prefill_flash_v2</code>: occupancy halves to 14.6% (from the smem constraint above), sm__throughput falls to 36.3% → 255 GFLOPS. The fewer barrier syncs from the larger tile cannot compensate for the loss in latency-hiding capacity.</li>
+</ul>
+<p><strong>Why flash_v2 has more FFMA than naive (5,371M vs 1,149M)</strong></p>
+<p>The flash kernels execute approximately 4.7× more FFMA instructions than naive for the same mathematical output. In addition to the QK dot product (identical to naive), each key processed by flash requires the online softmax update: <code>s = s*corr + es</code> (1 FFMA) and <code>o = o*corr + es*sV</code> (1–2 FFMA), plus the score scaling. This extra arithmetic is what drives the measured AI to 2,475 FLOPs/byte — the DRAM bytes are the same but the numerator is much larger.</p>
+<p><strong>S=65536 — memory-bound despite identical algorithm</strong></p>
+<p>This is the most instructive finding. <code>prefill_flash</code> achieves 391 GFLOPS at S=65536, nearly identical to its S=4096 result. Yet the bottleneck is completely different:</p>
+<ul>
+<li>DRAM throughput = <strong>80.9%</strong> of peak (≈ 528 GB/s measured)</li>
+<li>DRAM read = <strong>742.72 GB</strong> (vs only 3.15 MB at S=4096)</li>
+</ul>
+<p>The measured AI drops from a theoretical 8,590 FLOPs/byte to just <strong>3.70 FLOPs/byte</strong> — below the ridge point. Why? Flash attention reads K and V tile-by-tile for each of the S=65536 query rows. Key j is accessed by queries j, j+1, …, S−1, an average of S/2 ≈ 32,768 times. Total K+V DRAM traffic ≈ S²/2 × 2D × 4 bytes ≈ 1.1 TB, far exceeding the 4.5 MB L2 cache; every tile fetch is a cold miss.</p>
+<p><strong>Why DRAM BW = 80.9% but roofline efficiency = only 16.2%</strong></p>
+<p>On a log-log roofline, the kernel sits at (AI=3.70, 391 GFLOPS) while the memory-bound roofline at that AI predicts 652.8 × 3.70 = 2,415 GFLOPS. The gap (16.2%) arises from <strong>causal load imbalance</strong>: block 0 processes 1 key while block 65535 processes 65535 keys. At any given time the active SM set contains a mix of near-finished early blocks and work-heavy late blocks. Early blocks complete almost instantly and their SMs sit idle, pulling down average throughput. The 80.9% DRAM figure is dominated by the final wave of large blocks and does not reflect the steady-state utilization across the full kernel lifetime.</p>
+<p><strong>S=65536, flash_v2 — cache efficiency vs occupancy tradeoff</strong></p>
+<p><code>prefill_flash_v2</code> at S=65536 shows a striking contrast:</p>
+<ul>
+<li>DRAM read = only <strong>11.56 GB</strong> (vs 742.72 GB for flash) — 64× less DRAM traffic.</li>
+<li>The 2× larger tile (32 rows) doubles the temporal locality: a K/V tile loaded by block i covers twice as many subsequent blocks before being evicted from L2, dramatically increasing the L2 hit rate.</li>
+<li>Yet performance is <strong>worse</strong> (258 vs 391 GFLOPS). Occupancy drops from 34% to 16% (smem constraint), halving the number of warps available to hide latency. sm__throughput falls from 56.8% to 37.0%. Even though DRAM is no longer the bottleneck, the compute pipeline is severely underutilized.</li>
+</ul>
+<p>This demonstrates a fundamental tradeoff: larger tiles improve cache reuse but pay an occupancy tax that can exceed the benefit.</p>
+<h3 id="44-decode--memory-bound-multi-block-parallelism-is-key">4.4 Decode — memory-bound, multi-block parallelism is key </h3>
+<p>All decode kernels show measured AI ≈ 0.5–2.5 FLOPs/byte, far below the ridge point. Decode is fundamentally memory-bound: with only one query vector, arithmetic is negligible compared to the cost of streaming the entire KV cache from HBM.</p>
+<p><strong>Why decode_flash has higher AI than decode_naive (2.49 vs 0.53)</strong></p>
+<p>Flash decode performs the same online softmax update per key as flash prefill (extra ≈ 3–4 FFMA per key), yielding ~4.7× more total FFMA instructions (2,621K vs 561K) while reading the same DRAM bytes. The AI increases from 0.53 to 2.49 FLOPs/byte — a rightward shift on the roofline. The kernel remains memory-bound (2.49 &lt;&lt; 21.1 ridge), but the additional compute makes slightly better use of each byte fetched.</p>
+<p><strong>decode_naive</strong>: Grid = (1,) — single block, single SM. For C=65536, DRAM throughput = 0.63% despite the kernel being memory-bound. A single block with 256 threads can issue only a limited number of outstanding memory requests, leaving 99.4% of HBM bandwidth unused. This is the classic single-threaded memory bottleneck.</p>
+<p><strong>decode_flash</strong>: Launches ⌈C/256⌉ = 256 blocks for C=65536, distributing work across all 80 SMs. DRAM throughput rises to <strong>38.3%</strong> and performance improves <strong>46.8×</strong> over naive. Having many blocks in flight simultaneously allows hundreds of memory transactions to be outstanding at once, far better utilizing HBM.</p>
+<p><strong>decode_flash_v2 (+ float4)</strong>: Same 256 blocks as flash. The <code>float4</code> loads increase L1-texture traffic from 33.70 MB to 98.71 MB — wider vector fetches pull in more cache-line data per instruction, increasing L1 pressure but also coalescing more data per transaction. DRAM throughput rises marginally to <strong>40.1%</strong>, yielding a small but consistent improvement: 91.5 vs 90.0 GFLOPS for C=65536.</p>
+<p>All decode kernels are severely below DRAM peak (40% best case). The root cause is the inherently small problem: 256 blocks × 64 threads = 16,384 active threads, versus TITAN V's theoretical capacity of 80 SMs × 2048 threads = 163,840 threads. Occupancy is ~10%, leaving most of the GPU's memory-request bandwidth idle.</p>
+<h3 id="45-why-optimizations-sometimes-fail">4.5 Why optimizations sometimes fail </h3>
+<table>
+<thead>
+<tr>
+<th>Optimization</th>
+<th>Expectation</th>
+<th>Actual outcome</th>
+<th>Root cause</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>prefill_flash_v2: tile 16→32</td>
+<td>Fewer outer iterations → faster</td>
+<td>Slower at S=4096 (255 vs 395 GFLOPS)</td>
+<td>smem 8→16 KB, occupancy 34%→15%, sm__throughput 57%→36%</td>
+</tr>
+<tr>
+<td>prefill_flash_v2 at S=65536</td>
+<td>Better L2 cache reuse</td>
+<td>Still slower (258 vs 391 GFLOPS) despite 64× less DRAM</td>
+<td>Low occupancy outweighs cache gains; sm__throughput 37% vs 57%</td>
+</tr>
+<tr>
+<td>decode_flash_v2: float4</td>
+<td>More efficient loads, faster</td>
+<td>Marginal +1.7% at C=65536</td>
+<td>Memory-bound; both kernels read identical DRAM bytes; float4 only marginally helps L1</td>
+</tr>
+<tr>
+<td>decode_flash_v2 at C=4096</td>
+<td>Measurable speedup</td>
+<td>Negligible (9.85 vs 9.66 GFLOPS)</td>
+<td>Problem too small; GPU idle time dominates</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="5-roofline-summary">5. Roofline Summary </h2>
+<table>
+<thead>
+<tr>
+<th>Kernel</th>
+<th>Measured AI</th>
+<th>Bottleneck</th>
+<th>% of roofline</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>prefill_naive S=4096</td>
+<td>28.2 FLOPs/B</td>
+<td>compute (near ridge)</td>
+<td>292 / 13800 = 2.1%</td>
+</tr>
+<tr>
+<td>prefill_flash S=4096</td>
+<td>2,475 FLOPs/B</td>
+<td>compute (deep)</td>
+<td>395 / 13800 = 2.9%</td>
+</tr>
+<tr>
+<td>prefill_flash_v2 S=4096</td>
+<td>2,469 FLOPs/B</td>
+<td>compute, low occupancy</td>
+<td>255 / 13800 = 1.8%</td>
+</tr>
+<tr>
+<td>prefill_flash S=65536</td>
+<td>3.70 FLOPs/B</td>
+<td><strong>HBM bandwidth</strong> (load imbalance limits to 16.2%)</td>
+<td>391 / (652.8×3.70) = 16.2%</td>
+</tr>
+<tr>
+<td>prefill_flash_v2 S=65536</td>
+<td>237 FLOPs/B</td>
+<td>compute, low occupancy</td>
+<td>258 / 13800 = 1.9%</td>
+</tr>
+<tr>
+<td>decode_naive C=65536</td>
+<td>0.50 FLOPs/B</td>
+<td>HBM, single block</td>
+<td>1.93 / (652.8×0.50) = 0.59%</td>
+</tr>
+<tr>
+<td>decode_flash C=65536</td>
+<td>2.40 FLOPs/B</td>
+<td>HBM, multi-block</td>
+<td>90 / (652.8×2.40) = 5.7%</td>
+</tr>
+<tr>
+<td>decode_flash_v2 C=65536</td>
+<td>2.40 FLOPs/B</td>
+<td>HBM, multi-block</td>
+<td>91.5 / (652.8×2.40) = 5.8%</td>
+</tr>
+</tbody>
+</table>
+<p><img src="results/roofline.png" alt="Roofline plot"></p>
+<p>All kernels remain well below theoretical peak. The primary reasons are:</p>
+<ol>
+<li><strong>Online softmax serial dependency</strong>: m → corr → es → s → o is a 5-step chain with strict data dependencies that prevents instruction-level pipelining, limiting compute throughput even when the kernel is nominally compute-bound.</li>
+<li><strong>Shared-memory-limited occupancy for flash_v2</strong>: 16 KB smem per block allows only 5 blocks/SM vs 11 for flash, halving the warp pool available to hide latency.</li>
+<li><strong>Causal load imbalance at large S</strong>: Block i processes i+1 keys; early blocks finish almost instantly while late blocks dominate runtime, preventing sustained peak DRAM utilization.</li>
+<li><strong>Decode problem size</strong>: One query vector vs a large KV cache is too small to saturate 80 SMs; even 256 blocks achieve only ~10% occupancy.</li>
+</ol>
+<hr>
+<h2 id="6-conclusion">6. Conclusion </h2>
+<p>Flash Attention is indispensable for large prefill sequences: standard attention requires 17.2 GB for S=65536, exceeding hardware limits, while flash attention operates with O(tile · D) shared memory regardless of S. At S=4096, flash attention achieves a <strong>1.35× speedup</strong> over naive by eliminating the score buffer and reducing DRAM traffic from 81.6 MB to 4.3 MB; the workload is compute-bound at 2.9% of FP32 peak, limited primarily by the online softmax serial dependency chain. At S=65536, the bottleneck shifts to HBM bandwidth (80.9% utilization, 528 GB/s measured) because K and V must be re-read for each of the 65,536 query rows, accumulating 742 GB of total DRAM traffic despite each matrix being only 16 MB. Causal load imbalance further limits sustained bandwidth utilization to 16.2% of the memory-bound roofline.</p>
+<p>Attempts to improve prefill via a larger tile (flash_v2, tile=32) revealed a fundamental tradeoff: the 2× tile doubles L2 cache reuse (DRAM reads drop 64× at S=65536) but halves occupancy due to the doubled shared-memory footprint, resulting in net slowdown. This demonstrates that for kernels with serial dependency chains, occupancy — not cache efficiency — is the primary determinant of throughput.</p>
+<p>For decode, multi-block Flash Decoding provides a <strong>47× speedup</strong> by distributing the KV cache across 256 blocks, raising DRAM throughput from 0.6% (single block) to 40% (multi-block). Both prefill and decode remain far from theoretical limits, and future improvements would require breaking the online softmax dependency chain (e.g., via warp-level software pipelining) or migrating to tensor-core-based FP16/BF16 computation.</p>
+
+      </div>
+      
+      
+    
+    
+    
+    
+    
+    
+  
+    </body></html>

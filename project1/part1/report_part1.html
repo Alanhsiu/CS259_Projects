@@ -1,0 +1,1205 @@
+<!DOCTYPE html><html><head>
+      <title>report_part1</title>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      
+      <link rel="stylesheet" href="file:////Users/alanhsiu/.vscode/extensions/shd101wyy.markdown-preview-enhanced-0.8.24/crossnote/dependencies/katex/katex.min.css">
+      
+      
+      
+      
+      
+      
+      
+      <style>
+      code[class*=language-],pre[class*=language-]{color:#333;background:0 0;font-family:Consolas,"Liberation Mono",Menlo,Courier,monospace;text-align:left;white-space:pre;word-spacing:normal;word-break:normal;word-wrap:normal;line-height:1.4;-moz-tab-size:8;-o-tab-size:8;tab-size:8;-webkit-hyphens:none;-moz-hyphens:none;-ms-hyphens:none;hyphens:none}pre[class*=language-]{padding:.8em;overflow:auto;border-radius:3px;background:#f5f5f5}:not(pre)>code[class*=language-]{padding:.1em;border-radius:.3em;white-space:normal;background:#f5f5f5}.token.blockquote,.token.comment{color:#969896}.token.cdata{color:#183691}.token.doctype,.token.macro.property,.token.punctuation,.token.variable{color:#333}.token.builtin,.token.important,.token.keyword,.token.operator,.token.rule{color:#a71d5d}.token.attr-value,.token.regex,.token.string,.token.url{color:#183691}.token.atrule,.token.boolean,.token.code,.token.command,.token.constant,.token.entity,.token.number,.token.property,.token.symbol{color:#0086b3}.token.prolog,.token.selector,.token.tag{color:#63a35c}.token.attr-name,.token.class,.token.class-name,.token.function,.token.id,.token.namespace,.token.pseudo-class,.token.pseudo-element,.token.url-reference .token.variable{color:#795da3}.token.entity{cursor:help}.token.title,.token.title .token.punctuation{font-weight:700;color:#1d3e81}.token.list{color:#ed6a43}.token.inserted{background-color:#eaffea;color:#55a532}.token.deleted{background-color:#ffecec;color:#bd2c00}.token.bold{font-weight:700}.token.italic{font-style:italic}.language-json .token.property{color:#183691}.language-markup .token.tag .token.punctuation{color:#333}.language-css .token.function,code.language-css{color:#0086b3}.language-yaml .token.atrule{color:#63a35c}code.language-yaml{color:#183691}.language-ruby .token.function{color:#333}.language-markdown .token.url{color:#795da3}.language-makefile .token.symbol{color:#795da3}.language-makefile .token.variable{color:#183691}.language-makefile .token.builtin{color:#0086b3}.language-bash .token.keyword{color:#0086b3}pre[data-line]{position:relative;padding:1em 0 1em 3em}pre[data-line] .line-highlight-wrapper{position:absolute;top:0;left:0;background-color:transparent;display:block;width:100%}pre[data-line] .line-highlight{position:absolute;left:0;right:0;padding:inherit 0;margin-top:1em;background:hsla(24,20%,50%,.08);background:linear-gradient(to right,hsla(24,20%,50%,.1) 70%,hsla(24,20%,50%,0));pointer-events:none;line-height:inherit;white-space:pre}pre[data-line] .line-highlight:before,pre[data-line] .line-highlight[data-end]:after{content:attr(data-start);position:absolute;top:.4em;left:.6em;min-width:1em;padding:0 .5em;background-color:hsla(24,20%,50%,.4);color:#f4f1ef;font:bold 65%/1.5 sans-serif;text-align:center;vertical-align:.3em;border-radius:999px;text-shadow:none;box-shadow:0 1px #fff}pre[data-line] .line-highlight[data-end]:after{content:attr(data-end);top:auto;bottom:.4em}html body{font-family:'Helvetica Neue',Helvetica,'Segoe UI',Arial,freesans,sans-serif;font-size:16px;line-height:1.6;color:#333;background-color:#fff;overflow:initial;box-sizing:border-box;word-wrap:break-word}html body>:first-child{margin-top:0}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{line-height:1.2;margin-top:1em;margin-bottom:16px;color:#000}html body h1{font-size:2.25em;font-weight:300;padding-bottom:.3em}html body h2{font-size:1.75em;font-weight:400;padding-bottom:.3em}html body h3{font-size:1.5em;font-weight:500}html body h4{font-size:1.25em;font-weight:600}html body h5{font-size:1.1em;font-weight:600}html body h6{font-size:1em;font-weight:600}html body h1,html body h2,html body h3,html body h4,html body h5{font-weight:600}html body h5{font-size:1em}html body h6{color:#5c5c5c}html body strong{color:#000}html body del{color:#5c5c5c}html body a:not([href]){color:inherit;text-decoration:none}html body a{color:#08c;text-decoration:none}html body a:hover{color:#00a3f5;text-decoration:none}html body img{max-width:100%}html body>p{margin-top:0;margin-bottom:16px;word-wrap:break-word}html body>ol,html body>ul{margin-bottom:16px}html body ol,html body ul{padding-left:2em}html body ol.no-list,html body ul.no-list{padding:0;list-style-type:none}html body ol ol,html body ol ul,html body ul ol,html body ul ul{margin-top:0;margin-bottom:0}html body li{margin-bottom:0}html body li.task-list-item{list-style:none}html body li>p{margin-top:0;margin-bottom:0}html body .task-list-item-checkbox{margin:0 .2em .25em -1.8em;vertical-align:middle}html body .task-list-item-checkbox:hover{cursor:pointer}html body blockquote{margin:16px 0;font-size:inherit;padding:0 15px;color:#5c5c5c;background-color:#f0f0f0;border-left:4px solid #d6d6d6}html body blockquote>:first-child{margin-top:0}html body blockquote>:last-child{margin-bottom:0}html body hr{height:4px;margin:32px 0;background-color:#d6d6d6;border:0 none}html body table{margin:10px 0 15px 0;border-collapse:collapse;border-spacing:0;display:block;width:100%;overflow:auto;word-break:normal;word-break:keep-all}html body table th{font-weight:700;color:#000}html body table td,html body table th{border:1px solid #d6d6d6;padding:6px 13px}html body dl{padding:0}html body dl dt{padding:0;margin-top:16px;font-size:1em;font-style:italic;font-weight:700}html body dl dd{padding:0 16px;margin-bottom:16px}html body code{font-family:Menlo,Monaco,Consolas,'Courier New',monospace;font-size:.85em;color:#000;background-color:#f0f0f0;border-radius:3px;padding:.2em 0}html body code::after,html body code::before{letter-spacing:-.2em;content:'\00a0'}html body pre>code{padding:0;margin:0;word-break:normal;white-space:pre;background:0 0;border:0}html body .highlight{margin-bottom:16px}html body .highlight pre,html body pre{padding:1em;overflow:auto;line-height:1.45;border:#d6d6d6;border-radius:3px}html body .highlight pre{margin-bottom:0;word-break:normal}html body pre code,html body pre tt{display:inline;max-width:initial;padding:0;margin:0;overflow:initial;line-height:inherit;word-wrap:normal;background-color:transparent;border:0}html body pre code:after,html body pre code:before,html body pre tt:after,html body pre tt:before{content:normal}html body blockquote,html body dl,html body ol,html body p,html body pre,html body ul{margin-top:0;margin-bottom:16px}html body kbd{color:#000;border:1px solid #d6d6d6;border-bottom:2px solid #c7c7c7;padding:2px 4px;background-color:#f0f0f0;border-radius:3px}@media print{html body{background-color:#fff}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{color:#000;page-break-after:avoid}html body blockquote{color:#5c5c5c}html body pre{page-break-inside:avoid}html body table{display:table}html body img{display:block;max-width:100%;max-height:100%}html body code,html body pre{word-wrap:break-word;white-space:pre}}.markdown-preview{width:100%;height:100%;box-sizing:border-box}.markdown-preview ul{list-style:disc}.markdown-preview ul ul{list-style:circle}.markdown-preview ul ul ul{list-style:square}.markdown-preview ol{list-style:decimal}.markdown-preview ol ol,.markdown-preview ul ol{list-style-type:lower-roman}.markdown-preview ol ol ol,.markdown-preview ol ul ol,.markdown-preview ul ol ol,.markdown-preview ul ul ol{list-style-type:lower-alpha}.markdown-preview .newpage,.markdown-preview .pagebreak{page-break-before:always}.markdown-preview pre.line-numbers{position:relative;padding-left:3.8em;counter-reset:linenumber}.markdown-preview pre.line-numbers>code{position:relative}.markdown-preview pre.line-numbers .line-numbers-rows{position:absolute;pointer-events:none;top:1em;font-size:100%;left:0;width:3em;letter-spacing:-1px;border-right:1px solid #999;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.markdown-preview pre.line-numbers .line-numbers-rows>span{pointer-events:none;display:block;counter-increment:linenumber}.markdown-preview pre.line-numbers .line-numbers-rows>span:before{content:counter(linenumber);color:#999;display:block;padding-right:.8em;text-align:right}.markdown-preview .mathjax-exps .MathJax_Display{text-align:center!important}.markdown-preview:not([data-for=preview]) .code-chunk .code-chunk-btn-group{display:none}.markdown-preview:not([data-for=preview]) .code-chunk .status{display:none}.markdown-preview:not([data-for=preview]) .code-chunk .output-div{margin-bottom:16px}.markdown-preview .md-toc{padding:0}.markdown-preview .md-toc .md-toc-details{margin:0;padding:0;border:none}.markdown-preview .md-toc summary.md-toc-link-wrapper{cursor:pointer;list-style-position:outside}.markdown-preview .md-toc summary.md-toc-link-wrapper::marker{font-size:.85em}.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link{display:inline;padding:.25rem 0}.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link div,.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link p{display:inline}.markdown-preview .md-toc .md-toc-link-wrapper.highlighted .md-toc-link{font-weight:800}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='0']{margin-left:12px}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='1']{margin-left:28px}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='2']{margin-left:44px}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='3']{margin-left:60px}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='4']{margin-left:76px}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='5']{margin-left:80px}.scrollbar-style::-webkit-scrollbar{width:8px}.scrollbar-style::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}.scrollbar-style::-webkit-scrollbar-thumb{border-radius:5px;background-color:rgba(150,150,150,.66);border:4px solid rgba(150,150,150,.66);background-clip:content-box}html body[for=html-export]:not([data-presentation-mode]){position:relative;width:100%;height:100%;top:0;left:0;margin:0;padding:0;overflow:auto}html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{position:relative;top:0;min-height:100vh}@media screen and (min-width:914px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{padding:2em calc(50% - 457px + 2em)}}@media screen and (max-width:914px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{font-size:14px!important;padding:1em}}@media print{html body[for=html-export]:not([data-presentation-mode]) #sidebar-toc-btn{display:none}}html body[for=html-export]:not([data-presentation-mode]) #sidebar-toc-btn{position:fixed;bottom:8px;left:8px;font-size:28px;cursor:pointer;color:inherit;z-index:99;width:32px;text-align:center;opacity:.4}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] #sidebar-toc-btn{opacity:1}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc{position:fixed;top:0;left:0;width:300px;height:100%;padding:32px 0 48px 0;font-size:14px;box-shadow:0 0 4px rgba(150,150,150,.33);box-sizing:border-box;overflow:auto;background-color:inherit}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar{width:8px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-thumb{border-radius:5px;background-color:rgba(150,150,150,.66);border:4px solid rgba(150,150,150,.66);background-clip:content-box}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc a{text-decoration:none}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc{padding:0 16px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-details{margin:0;padding:0;border:none}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link{display:inline;padding:.25rem 0}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link div,html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link p{display:inline}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper.highlighted .md-toc-link{font-weight:800}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='0']{padding-left:0}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='1']{padding-left:16px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='2']{padding-left:32px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='3']{padding-left:48px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='4']{padding-left:64px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='5']{padding-left:80px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{left:300px;width:calc(100% - 300px);padding:2em calc(50% - 457px - 300px / 2);margin:0;box-sizing:border-box}@media screen and (max-width:1274px){html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{width:100%}}html body[for=html-export]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .markdown-preview{left:50%;transform:translateX(-50%)}html body[for=html-export]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .md-sidebar-toc{display:none}
+/* Please visit the URL below for more information: */
+/*   https://shd101wyy.github.io/markdown-preview-enhanced/#/customize-css */
+
+      </style>
+      <script type="text/javascript">
+  document.addEventListener("DOMContentLoaded", function () {
+    // your code here
+  });
+</script>
+    </head>
+    <body for="html-export">
+      <div class="crossnote markdown-preview  ">
+      
+<h1 id="cs259-mini-project-1--part-1-convolution">CS259 Mini-Project 1 — Part 1: Convolution </h1>
+<p><strong>GPU:</strong> NVIDIA TITAN V (Volta GV100, CC 7.0)<br>
+<strong>Batch size:</strong> B = 16 (used consistently across all configurations)<br>
+<strong>Block size:</strong> 16 × 16 × 1 = 256 threads/block (K0–K4);  32 × 8 × 1 = 256 threads/block (K5)<br>
+<strong>Source files:</strong> <code>conv.cu</code> (kernels K0–K5), <code>conv_ref.h</code> (CPU reference)</p>
+<hr>
+<h2 id="q1-parallelization-strategy">Q1. Parallelization Strategy </h2>
+<p>The output tensor has four dimensions <code>[B][Ny][Nx][Nn]</code>. These are distributed across the CUDA<br>
+thread hierarchy as follows for the baseline grid used by K0–K2 and K4:</p>
+<table>
+<thead>
+<tr>
+<th>Output dimension</th>
+<th>Mapped to</th>
+<th>Rationale</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Nn</code> (output channel)</td>
+<td><code>blockIdx.z</code></td>
+<td>Every thread in a block shares the same <code>nn</code>; the weight slice <code>weight[*][*][nn][*]</code> is identical for all 256 threads, enabling cooperative shared-memory load (K1, K3)</td>
+</tr>
+<tr>
+<td><code>B × Ny</code> (batch × row, flattened)</td>
+<td><code>blockIdx.y × TILE_Y + threadIdx.y</code></td>
+<td>Batch and spatial-y are fully independent — collapsing them into one axis maximises grid parallelism without changing the access pattern</td>
+</tr>
+<tr>
+<td><code>Nx</code> (spatial x)</td>
+<td><code>blockIdx.x × TILE_X + threadIdx.x</code></td>
+<td>Adjacent threads along x write to consecutive <code>Nn</code>-minor output addresses, giving coalesced global writes</td>
+</tr>
+</tbody>
+</table>
+<p>Each thread's inner loop iterates over <code>(ky, kx, ni)</code> to accumulate the full dot product for its<br>
+one assigned output element:</p>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>Grid  (K0–K2, K4): ( ceil(Nx/16),  ceil(B·Ny/16),  Nn )
+                 = ( 14,           224,             64  )   — Conv1, B=16
+Block (K0–K2, K4): ( 16, 16, 1 ) = 256 threads
+</code></pre><p><strong>K3 (<code>smem_wi</code>) — restructured grid.</strong><br>
+The grid becomes <code>(ceil(Nx/16), ceil(Ny/16), B×Nn)</code> with <code>blockIdx.z = b×Nn + nn</code>. This<br>
+guarantees every thread in a block belongs to the same batch <code>b</code>, making the 18×18 input patch<br>
+contiguous in memory and loadable into shared memory without boundary discontinuities.</p>
+<p><strong>K5 (<code>warp</code>) — warp-level decomposition.</strong><br>
+The flat <code>(ky, kx, ni)</code> iteration space is partitioned across 32 lanes of a warp: lane <code>k</code> handles<br>
+iterations <code>t = k, k+32, k+64, …</code>. A five-round <code>__shfl_down_sync</code> butterfly folds the 32 partial<br>
+sums into lane 0. Block = <code>(32, 8, 1)</code> = 256 threads = 8 warps; each warp handles a unique <code>xout</code>.</p>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>Grid  (K5): ( ceil(Nx/8),  B·Ny,  Nn )
+          = ( 28,          3584,   64 )   — Conv1, B=16
+Block (K5): ( 32, 8, 1 ) = 256 threads
+</code></pre><p><strong>Limitations.</strong></p>
+<ul>
+<li><em>Grid Z saturation.</em> <code>blockIdx.z = nn</code> assigns one block per output channel. For Conv2 (Nn=512)<br>
+this creates a 512-deep grid Z, which can leave SMs idle when the xy grid is small (only 1×14<br>
+blocks for Conv2).</li>
+<li><em>Serial inner loop.</em> The <code>ni</code> loop runs serially inside each thread. For Conv2, Ni=512 means<br>
+9×512 = 4,608 FMA iterations per thread — K4 (register blocking) and K5 (warp reduction) each<br>
+partially address this by restructuring how <code>ni</code> is consumed.</li>
+<li><em>Linear scaling.</em> The strategy scales linearly with B, Ny, Nx, Nn. The <code>ni</code> dimension is not<br>
+exposed to inter-SM parallelism, which is an opportunity for future warp-level or block-level<br>
+channel reductions.</li>
+</ul>
+<hr>
+<h2 id="q2-algorithmic-flop-count">Q2. Algorithmic FLOP Count </h2>
+<p>Each output element requires <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>K</mi><mi>y</mi></msub><mo>×</mo><msub><mi>K</mi><mi>x</mi></msub><mo>×</mo><msub><mi>N</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">K_y \times K_x \times N_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9694em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">K</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0359em;">y</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">K</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">x</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.109em;">N</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.109em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> fused multiply-add operations<br>
+(1 FMA = 2 FLOPs — one multiply plus one add):</p>
+<p><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mtext>FLOPs</mtext><mo>=</mo><mn>2</mn><mo>×</mo><mi>B</mi><mo>×</mo><msub><mi>N</mi><mi>y</mi></msub><mo>×</mo><msub><mi>N</mi><mi>x</mi></msub><mo>×</mo><msub><mi>N</mi><mi>n</mi></msub><mo>×</mo><msub><mi>K</mi><mi>y</mi></msub><mo>×</mo><msub><mi>K</mi><mi>x</mi></msub><mo>×</mo><msub><mi>N</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">\text{FLOPs} = 2 \times B \times N_y \times N_x \times N_n \times K_y \times K_x \times N_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord text"><span class="mord">FLOPs</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7667em;vertical-align:-0.0833em;"></span><span class="mord mathnormal" style="margin-right:0.0502em;">B</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.9694em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.109em;">N</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.109em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0359em;">y</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.109em;">N</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.109em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">x</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.109em;">N</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.109em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.9694em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">K</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0359em;">y</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">K</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">x</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.109em;">N</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.109em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span></p>
+<h3 id="conv1-b16-224224-ninn64-kykx3">Conv1 (B=16, 224×224, Ni=Nn=64, Ky=Kx=3) </h3>
+<p><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mo>=</mo><mn>2</mn><mo>×</mo><mn>16</mn><mo>×</mo><mn>224</mn><mo>×</mo><mn>224</mn><mo>×</mo><mn>64</mn><mo>×</mo><mn>3</mn><mo>×</mo><mn>3</mn><mo>×</mo><mn>64</mn><mo>=</mo><mrow><mn mathvariant="bold">59.19</mn><mtext>&nbsp;GFLOPs</mtext></mrow></mrow><annotation encoding="application/x-tex">= 2 \times 16 \times 224 \times 224 \times 64 \times 3 \times 3 \times 64 = \mathbf{59.19 \text{ GFLOPs}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.3669em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">16</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">224</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">224</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">64</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">3</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">3</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">64</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord"><span class="mord mathbf">59.19</span><span class="mord text"><span class="mord">&nbsp;GFLOPs</span></span></span></span></span></span></span></p>
+<p><em>ncu verification:</em> <code>smsp__sass_thread_inst_executed_op_ffma_pred_on.sum</code> = 29,595,009,024<br>
+→ ×2 = <strong>59.19 GFLOPs</strong> ✓</p>
+<h3 id="conv2-b16-1414-ninn512-kykx3">Conv2 (B=16, 14×14, Ni=Nn=512, Ky=Kx=3) </h3>
+<p><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mo>=</mo><mn>2</mn><mo>×</mo><mn>16</mn><mo>×</mo><mn>14</mn><mo>×</mo><mn>14</mn><mo>×</mo><mn>512</mn><mo>×</mo><mn>3</mn><mo>×</mo><mn>3</mn><mo>×</mo><mn>512</mn><mo>=</mo><mrow><mn mathvariant="bold">14.80</mn><mtext>&nbsp;GFLOPs</mtext></mrow></mrow><annotation encoding="application/x-tex">= 2 \times 16 \times 14 \times 14 \times 512 \times 3 \times 3 \times 512 = \mathbf{14.80 \text{ GFLOPs}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.3669em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">16</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">14</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">14</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">512</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">3</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">3</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">512</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord"><span class="mord mathbf">14.80</span><span class="mord text"><span class="mord">&nbsp;GFLOPs</span></span></span></span></span></span></span></p>
+<p><em>ncu verification:</em> 7,398,752,256 × 2 = <strong>14.80 GFLOPs</strong> ✓</p>
+<hr>
+<h2 id="q3-execution-time-and-achieved-gflops">Q3. Execution Time and Achieved GFLOPS </h2>
+<p>Times are medians of 5 back-to-back CUDA-Event-timed runs with no profiler overhead (one<br>
+warm-up run precedes the five). All kernels pass correctness verification against the<br>
+OpenMP CPU reference (max absolute error &lt; 2×10⁻⁹).</p>
+<table>
+<thead>
+<tr>
+<th>Config</th>
+<th>Kernel</th>
+<th>Time (ms)</th>
+<th>GFLOPS</th>
+<th>Speedup vs naive</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Conv1</strong></td>
+<td>K0 naive</td>
+<td>686.4</td>
+<td>86.2</td>
+<td>1.00×</td>
+</tr>
+<tr>
+<td>224×224</td>
+<td>K1 smem_w</td>
+<td>665.7</td>
+<td>88.9</td>
+<td>1.03×</td>
+</tr>
+<tr>
+<td>Ni=Nn=64</td>
+<td>K2 unroll</td>
+<td>1128.6</td>
+<td>52.4</td>
+<td>0.61× ↓</td>
+</tr>
+<tr>
+<td></td>
+<td>K3 smem_wi</td>
+<td><strong>57.0</strong></td>
+<td><strong>1037.6</strong></td>
+<td><strong>12.0×</strong> ↑</td>
+</tr>
+<tr>
+<td></td>
+<td>K4 regblock</td>
+<td>397.2</td>
+<td>149.0</td>
+<td>1.73×</td>
+</tr>
+<tr>
+<td></td>
+<td>K5 warp</td>
+<td>171.0</td>
+<td>346.1</td>
+<td>4.01×</td>
+</tr>
+<tr>
+<td><strong>Conv2</strong></td>
+<td>K0 naive</td>
+<td>84.2</td>
+<td>175.7</td>
+<td>1.00×</td>
+</tr>
+<tr>
+<td>14×14</td>
+<td>K1 smem_w</td>
+<td>99.2</td>
+<td>149.2</td>
+<td>0.85× ↓</td>
+</tr>
+<tr>
+<td>Ni=Nn=512</td>
+<td>K2 unroll</td>
+<td>86.9</td>
+<td>170.3</td>
+<td>0.97×</td>
+</tr>
+<tr>
+<td></td>
+<td>K3 smem_wi</td>
+<td><strong>12.5</strong></td>
+<td><strong>1181.5</strong></td>
+<td><strong>6.73×</strong> ↑</td>
+</tr>
+<tr>
+<td></td>
+<td>K4 regblock</td>
+<td>23.4</td>
+<td>631.5</td>
+<td>3.59×</td>
+</tr>
+<tr>
+<td></td>
+<td>K5 warp</td>
+<td>39.3</td>
+<td>376.8</td>
+<td>2.15×</td>
+</tr>
+</tbody>
+</table>
+<p><strong>TITAN V peak FP32:</strong> 14,900 GFLOPS.<br>
+Best achieved: Conv2 K3 smem_wi at 1181.5 GFLOPS = <strong>7.9% of peak</strong>.<br>
+Conv1 K3 smem_wi at 1037.6 GFLOPS = <strong>7.0% of peak</strong>.<br>
+Both naive kernels are below 1.2% of peak, confirming severe memory bottlenecks.</p>
+<hr>
+<h2 id="q4-roofline-analysis">Q4. Roofline Analysis </h2>
+<h3 id="hardware--nvidia-titan-v">Hardware — NVIDIA TITAN V </h3>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Peak FP32 FLOPS</td>
+<td>14,900 GFLOPS (14.9 TFLOPS)</td>
+</tr>
+<tr>
+<td>Peak HBM2 bandwidth</td>
+<td>652.8 GB/s</td>
+</tr>
+<tr>
+<td><strong>Ridge point</strong></td>
+<td><strong>22.82 FLOPs/byte</strong></td>
+</tr>
+<tr>
+<td>L2 cache</td>
+<td>4.5 MB</td>
+</tr>
+<tr>
+<td>Shared memory / SM</td>
+<td>96 KB</td>
+</tr>
+<tr>
+<td>CUDA cores</td>
+<td>5120</td>
+</tr>
+<tr>
+<td>SM count</td>
+<td>80</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Unit note.</strong> ncu reports <code>dram__bytes_read.sum</code> and <code>dram__bytes_write.sum</code> in <code>Gbyte</code><br>
+= 10⁹ bytes (SI, not 2³⁰). Cross-check: Conv1 naive reads 420.65 × 10⁹ bytes in 686 ms<br>
+→ 613 GB/s = 93.9% × 652.8 GB/s, matching ncu's <code>gpu__dram_throughput = 94.0%</code> to<br>
+within 0.1%. ✓</p>
+</blockquote>
+<h3 id="theoretical-arithmetic-intensity">Theoretical Arithmetic Intensity </h3>
+<p>The theoretical AI assumes every tensor byte is read or written exactly once (no re-fetching):</p>
+<p><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mtext>AI</mtext><mtext>theory</mtext></msub><mo>=</mo><mfrac><mtext>algorithmic&nbsp;FLOPs</mtext><mrow><mtext>bytes</mtext><mo stretchy="false">(</mo><mtext>synapse</mtext><mo stretchy="false">)</mo><mo>+</mo><mtext>bytes</mtext><mo stretchy="false">(</mo><mtext>neuron_i</mtext><mo stretchy="false">)</mo><mo>+</mo><mtext>bytes</mtext><mo stretchy="false">(</mo><mtext>neuron_n</mtext><mo stretchy="false">)</mo></mrow></mfrac></mrow><annotation encoding="application/x-tex">\text{AI}_\text{theory} = \frac{\text{algorithmic FLOPs}}{\text{bytes}(\text{synapse}) + \text{bytes}(\text{neuron\_i}) + \text{bytes}(\text{neuron\_n})}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9694em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord text"><span class="mord">AI</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord text mtight"><span class="mord mtight">theory</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.3674em;vertical-align:-0.996em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3714em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord">bytes</span></span><span class="mopen">(</span><span class="mord text"><span class="mord">synapse</span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord text"><span class="mord">bytes</span></span><span class="mopen">(</span><span class="mord text"><span class="mord">neuron_i</span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord text"><span class="mord">bytes</span></span><span class="mopen">(</span><span class="mord text"><span class="mord">neuron_n</span></span><span class="mclose">)</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord">algorithmic&nbsp;FLOPs</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.996em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></p>
+<p><strong>Conv1</strong> — minimum memory footprint:</p>
+<table>
+<thead>
+<tr>
+<th>Tensor</th>
+<th>Dimensions</th>
+<th>Size</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>synapse</td>
+<td>[3][3][64][64]</td>
+<td>147,456 B (0.14 MB)</td>
+</tr>
+<tr>
+<td>neuron_i</td>
+<td>[16×226][226][64]</td>
+<td>208,949,248 B (199.3 MB)</td>
+</tr>
+<tr>
+<td>neuron_n</td>
+<td>[16×224][224][64]</td>
+<td>205,520,896 B (196.0 MB)</td>
+</tr>
+<tr>
+<td><strong>Total minimum</strong></td>
+<td></td>
+<td><strong>414,617,600 B (395.5 MB)</strong></td>
+</tr>
+</tbody>
+</table>
+<p><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mtext>AI</mtext><mtext>theory,Conv1</mtext></msub><mo>=</mo><mfrac><mrow><mn>59.19</mn><mo>×</mo><msup><mn>10</mn><mn>9</mn></msup></mrow><mrow><mn>414.6</mn><mo>×</mo><msup><mn>10</mn><mn>6</mn></msup></mrow></mfrac><mo>=</mo><mrow><mn mathvariant="bold">142.7</mn><mtext>&nbsp;FLOPs/byte</mtext></mrow></mrow><annotation encoding="application/x-tex">\text{AI}_{\text{theory,Conv1}} = \frac{59.19 \times 10^9}{414.6 \times 10^6} = \mathbf{142.7 \text{ FLOPs/byte}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9694em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord text"><span class="mord">AI</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">theory,Conv1</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.2604em;vertical-align:-0.7693em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.4911em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">414.6</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7401em;"><span style="top:-2.989em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">6</span></span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">59.19</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">9</span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.7693em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathbf">142.7</span><span class="mord text"><span class="mord">&nbsp;FLOPs/byte</span></span></span></span></span></span></span></p>
+<p><strong>Conv2</strong> — minimum memory footprint:</p>
+<table>
+<thead>
+<tr>
+<th>Tensor</th>
+<th>Dimensions</th>
+<th>Size</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>synapse</td>
+<td>[3][3][512][512]</td>
+<td>9,437,184 B (9.0 MB)</td>
+</tr>
+<tr>
+<td>neuron_i</td>
+<td>[16×16][16][512]</td>
+<td>8,388,608 B (8.0 MB)</td>
+</tr>
+<tr>
+<td>neuron_n</td>
+<td>[16×14][14][512]</td>
+<td>6,422,528 B (6.1 MB)</td>
+</tr>
+<tr>
+<td><strong>Total minimum</strong></td>
+<td></td>
+<td><strong>24,248,320 B (23.1 MB)</strong></td>
+</tr>
+</tbody>
+</table>
+<p><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mtext>AI</mtext><mtext>theory,Conv2</mtext></msub><mo>=</mo><mfrac><mrow><mn>14.80</mn><mo>×</mo><msup><mn>10</mn><mn>9</mn></msup></mrow><mrow><mn>24.25</mn><mo>×</mo><msup><mn>10</mn><mn>6</mn></msup></mrow></mfrac><mo>=</mo><mrow><mn mathvariant="bold">610.2</mn><mtext>&nbsp;FLOPs/byte</mtext></mrow></mrow><annotation encoding="application/x-tex">\text{AI}_{\text{theory,Conv2}} = \frac{14.80 \times 10^9}{24.25 \times 10^6} = \mathbf{610.2 \text{ FLOPs/byte}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9694em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord text"><span class="mord">AI</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">theory,Conv2</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.2604em;vertical-align:-0.7693em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.4911em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">24.25</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7401em;"><span style="top:-2.989em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">6</span></span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">14.80</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">9</span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.7693em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathbf">610.2</span><span class="mord text"><span class="mord">&nbsp;FLOPs/byte</span></span></span></span></span></span></span></p>
+<p>Both values far exceed the ridge point (22.82), so <strong>both configurations are theoretically<br>
+compute-bound</strong> if every DRAM byte is maximally reused.</p>
+<h3 id="measured-arithmetic-intensity">Measured Arithmetic Intensity </h3>
+<p><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mtext>AI</mtext><mtext>measured</mtext></msub><mo>=</mo><mfrac><mrow><mtext mathvariant="monospace">smsp__sass_thread_inst_executed_op_ffma_pred_on.sum</mtext><mo>×</mo><mn>2</mn></mrow><mrow><mtext mathvariant="monospace">dram__bytes_read.sum</mtext><mo>+</mo><mtext mathvariant="monospace">dram__bytes_write.sum</mtext></mrow></mfrac></mrow><annotation encoding="application/x-tex">\text{AI}_{\text{measured}} = \frac{\texttt{smsp\_\_sass\_thread\_inst\_executed\_op\_ffma\_pred\_on.sum} \times 2}{\texttt{dram\_\_bytes\_read.sum} + \texttt{dram\_\_bytes\_write.sum}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord text"><span class="mord">AI</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">measured</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.2297em;vertical-align:-0.9082em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3214em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord texttt">dram__bytes_read.sum</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord text"><span class="mord texttt">dram__bytes_write.sum</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord texttt">smsp__sass_thread_inst_executed_op_ffma_pred_on.sum</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.9082em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></p>
+<table>
+<thead>
+<tr>
+<th>Config</th>
+<th>Kernel</th>
+<th>DRAM Read (GB)</th>
+<th>DRAM Write (GB)</th>
+<th>Total DRAM (GB)</th>
+<th>Actual AI</th>
+<th>DRAM%</th>
+<th>SM%</th>
+<th>Occ%</th>
+<th>Bound</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Conv1</td>
+<td>K0 naive</td>
+<td>419.00</td>
+<td>1.65</td>
+<td>420.65</td>
+<td>0.141</td>
+<td>94.0</td>
+<td>2.82</td>
+<td>73.2</td>
+<td><strong>Memory</strong></td>
+</tr>
+<tr>
+<td></td>
+<td>K1 smem_w</td>
+<td>406.82</td>
+<td>1.65</td>
+<td>408.47</td>
+<td>0.145</td>
+<td>94.2</td>
+<td>2.91</td>
+<td>73.3</td>
+<td><strong>Memory</strong></td>
+</tr>
+<tr>
+<td></td>
+<td>K2 unroll</td>
+<td>689.25</td>
+<td>1.65</td>
+<td>690.90</td>
+<td>0.086</td>
+<td>93.6</td>
+<td>1.70</td>
+<td>97.4</td>
+<td><strong>Memory</strong></td>
+</tr>
+<tr>
+<td></td>
+<td>K3 smem_wi</td>
+<td>27.10</td>
+<td>1.64</td>
+<td>28.74</td>
+<td>2.059</td>
+<td>77.2</td>
+<td>44.1</td>
+<td>37.3</td>
+<td><strong>Memory</strong></td>
+</tr>
+<tr>
+<td></td>
+<td>K4 regblock</td>
+<td>229.89</td>
+<td>0.41</td>
+<td>230.30</td>
+<td>0.257</td>
+<td>89.4</td>
+<td>3.05</td>
+<td>49.4</td>
+<td><strong>Memory</strong></td>
+</tr>
+<tr>
+<td></td>
+<td>K5 warp</td>
+<td>13.39</td>
+<td>1.65</td>
+<td>15.04</td>
+<td>3.936</td>
+<td>13.5</td>
+<td>73.4</td>
+<td>70.9</td>
+<td><strong>Memory</strong></td>
+</tr>
+<tr>
+<td>Conv2</td>
+<td>K0 naive</td>
+<td>16.26</td>
+<td>0.045</td>
+<td>16.31</td>
+<td>0.908</td>
+<td>29.4</td>
+<td>6.47</td>
+<td>73.8</td>
+<td><strong>Memory</strong></td>
+</tr>
+<tr>
+<td></td>
+<td>K1 smem_w</td>
+<td>18.06</td>
+<td>0.047</td>
+<td>18.11</td>
+<td>0.817</td>
+<td>27.7</td>
+<td>5.52</td>
+<td>61.5</td>
+<td><strong>Memory</strong></td>
+</tr>
+<tr>
+<td></td>
+<td>K2 unroll</td>
+<td>23.32</td>
+<td>0.046</td>
+<td>23.37</td>
+<td>0.633</td>
+<td>40.1</td>
+<td>6.14</td>
+<td>97.6</td>
+<td><strong>Memory</strong></td>
+</tr>
+<tr>
+<td></td>
+<td>K3 smem_wi</td>
+<td>0.162</td>
+<td>0.008</td>
+<td>0.169</td>
+<td><strong>87.49</strong></td>
+<td>2.07</td>
+<td>60.0</td>
+<td>37.4</td>
+<td><strong>Compute</strong></td>
+</tr>
+<tr>
+<td></td>
+<td>K4 regblock</td>
+<td>1.780</td>
+<td>0.012</td>
+<td>1.792</td>
+<td>8.258</td>
+<td>11.2</td>
+<td>14.5</td>
+<td>48.0</td>
+<td><strong>Memory</strong></td>
+</tr>
+<tr>
+<td></td>
+<td>K5 warp</td>
+<td>10.30</td>
+<td>0.053</td>
+<td>10.35</td>
+<td>1.429</td>
+<td>40.3</td>
+<td>70.9</td>
+<td>59.9</td>
+<td><strong>Memory</strong></td>
+</tr>
+</tbody>
+</table>
+<h3 id="roofline-chart">Roofline Chart </h3>
+<p><img src="results/roofline.png" alt="Roofline – NVIDIA TITAN V, all 6 kernels, Conv1 and Conv2"></p>
+<p><em>Filled markers = K0/K2/K4/K5 (naive/unroll/regblock/warp); hollow markers = K1/K3 (smem_w/smem_wi).</em><br>
+<em>Red = Conv1; blue = Conv2. Dashed vertical lines = theoretical minimum AI. Dotted vertical = ridge point (22.82).</em></p>
+<h3 id="gap-between-theoretical-and-measured-ai">Gap Between Theoretical and Measured AI </h3>
+<table>
+<thead>
+<tr>
+<th>Config</th>
+<th>Theory AI</th>
+<th>Best measured AI</th>
+<th>DRAM excess factor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Conv1 naive</td>
+<td>142.7</td>
+<td>0.141</td>
+<td><strong>×1012</strong></td>
+</tr>
+<tr>
+<td>Conv1 K3 smem_wi</td>
+<td>142.7</td>
+<td>2.059</td>
+<td>×69</td>
+</tr>
+<tr>
+<td>Conv2 naive</td>
+<td>610.2</td>
+<td>0.908</td>
+<td><strong>×672</strong></td>
+</tr>
+<tr>
+<td>Conv2 K3 smem_wi</td>
+<td>610.2</td>
+<td><strong>87.49</strong></td>
+<td>×7</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Conv1 analysis.</strong> The 144 KB weight tensor fits within TITAN V's 4.5 MB L2 cache, but<br>
+51.4 M output elements each independently re-fetch 576 weight values. Concurrent warp<br>
+pressure evicts weight cache lines before they can be reused, causing most reads to reach<br>
+DRAM. The 199 MB padded input is too large to cache at all. Even the best Conv1 kernel<br>
+(K3 smem_wi) brings actual AI only to 2.06 — still well below the ridge point — because<br>
+the data movement is now dominated by L1/L2 rather than DRAM, but the kernel is not<br>
+yet compute-bound.</p>
+<p><strong>Conv2 analysis.</strong> The padded input (8 MB) and output (6 MB) both fit in L2, and<br>
+<code>l1tex__t_bytes_pipe_lsu_mem_global_op_ld = 245 GB</code> vs <code>dram__bytes_read = 16.3 GB</code><br>
+confirms ~94% of L1 misses are served by L2 for the naive kernel. The 9.4 MB weight is<br>
+larger than L2, so repeated weight fetches partially escape to DRAM. K3 smem_wi tiles<br>
+the weight into 8-channel shared-memory chunks, collapsing DRAM traffic to 162 MB and<br>
+raising actual AI to <strong>87.49 FLOPs/byte</strong> — the <strong>only kernel in this study to exceed the<br>
+ridge point (22.82)</strong> and enter the compute-bound regime. SM throughput reaches 60%,<br>
+up from 6.5% for naive.</p>
+<hr>
+<h2 id="q5-optimisations">Q5. Optimisations </h2>
+<p>Six kernels were implemented, profiled, and compared against the naive baseline. Each targets<br>
+a different source of inefficiency identified from the Roofline analysis.</p>
+<hr>
+<h3 id="k1--shared-memory-weight-tile-smem_w">K1 — Shared-Memory Weight Tile (<code>smem_w</code>) </h3>
+<p><strong>Idea.</strong> Every thread in a block shares <code>blockIdx.z = nn</code>, so all 256 threads need the<br>
+identical weight slice <code>weight[*][*][nn][*]</code>. Load this slice cooperatively into shared memory<br>
+once per block; subsequent accesses hit SRAM (~20 ns) rather than DRAM (~600 ns).</p>
+<p>Shared memory per block = Ky × Kx × Ni × 4 bytes:</p>
+<ul>
+<li>Conv1 (Ni=64): <strong>2.25 KB</strong> — thread count limits the SM to 8 blocks/SM regardless; no<br>
+occupancy penalty.</li>
+<li>Conv2 (Ni=512): <strong>18.0 KB</strong> — smem-limited: 96 KB ÷ 18 KB = 5.3 → <strong>5 blocks/SM &lt; 8</strong><br>
+→ occupancy drops from 73.8% to 61.5%.</li>
+</ul>
+<p><strong>Conv1 results:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>naive</th>
+<th>smem_w</th>
+<th>Δ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Time (ms)</td>
+<td>686.4</td>
+<td>665.7</td>
+<td>−3.1%</td>
+</tr>
+<tr>
+<td>GFLOPS</td>
+<td>86.2</td>
+<td>88.9</td>
+<td>+3.2%</td>
+</tr>
+<tr>
+<td>DRAM total (GB)</td>
+<td>420.65</td>
+<td>408.47</td>
+<td>−2.9%</td>
+</tr>
+<tr>
+<td>Actual AI</td>
+<td>0.141</td>
+<td>0.145</td>
+<td>+2.8%</td>
+</tr>
+<tr>
+<td>DRAM throughput</td>
+<td>94.0%</td>
+<td>94.2%</td>
+<td>≈ same</td>
+</tr>
+<tr>
+<td>Occupancy</td>
+<td>73.2%</td>
+<td>73.3%</td>
+<td>≈ same</td>
+</tr>
+</tbody>
+</table>
+<p>The improvement is marginal. Weight DRAM traffic drops by 12 GB, but the kernel is<br>
+dominated by the 199 MB padded input which is too large for L2 and is unaffected by<br>
+smem_w. DRAM throughput stays at ~94%, confirming that weight was not the primary<br>
+bottleneck. The 2.25 KB smem tile for Conv1 is small enough that the weight was already<br>
+partially served by L2 in the naive kernel.</p>
+<p><strong>Conv2 results:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>naive</th>
+<th>smem_w</th>
+<th>Δ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Time (ms)</td>
+<td>84.2</td>
+<td>99.2</td>
+<td><strong>+17.8%</strong> ↑ slower</td>
+</tr>
+<tr>
+<td>GFLOPS</td>
+<td>175.7</td>
+<td>149.2</td>
+<td>−15.1%</td>
+</tr>
+<tr>
+<td>DRAM total (GB)</td>
+<td>16.31</td>
+<td>18.11</td>
+<td>+11.0%</td>
+</tr>
+<tr>
+<td>Actual AI</td>
+<td>0.908</td>
+<td>0.817</td>
+<td>−10.0%</td>
+</tr>
+<tr>
+<td>L2 miss traffic (GB)</td>
+<td>37.44</td>
+<td>87.35</td>
+<td><strong>+133%</strong></td>
+</tr>
+<tr>
+<td>Occupancy</td>
+<td>73.8%</td>
+<td>61.5%</td>
+<td>−16.7%</td>
+</tr>
+</tbody>
+</table>
+<p>smem_w is <strong>counterproductive</strong> for Conv2. The 18 KB tile reduces concurrent blocks/SM<br>
+from 8 to 5, cutting occupancy by 16.7%. Fewer resident warps means fewer in-flight<br>
+memory requests, degrading L2 cache-line utilisation and causing 133% more L2 misses to<br>
+reach DRAM — DRAM traffic increases rather than decreasing. The smem tile for Conv2 is<br>
+too large to fit within the shared-memory budget without sacrificing occupancy.</p>
+<hr>
+<h3 id="k2--loop-unrolling-unroll">K2 — Loop Unrolling (<code>unroll</code>) </h3>
+<p><strong>Idea.</strong> <code>KY = KX = 3</code> are compile-time constants. Applying <code>#pragma unroll</code> fully unrolls<br>
+those two loops into 9 independent FMA chains, eliminating loop-control instructions<br>
+(compare, increment, branch) and allowing the compiler to expose instruction-level<br>
+parallelism across all 9 filter positions simultaneously. The <code>ni</code> loop is runtime-dynamic<br>
+and is not unrolled.</p>
+<p><strong>Conv1 results:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>naive</th>
+<th>unroll</th>
+<th>Δ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Time (ms)</td>
+<td>686.4</td>
+<td>1128.6</td>
+<td><strong>+64.4%</strong> ↑ slower</td>
+</tr>
+<tr>
+<td>GFLOPS</td>
+<td>86.2</td>
+<td>52.4</td>
+<td>−39.2%</td>
+</tr>
+<tr>
+<td>DRAM total (GB)</td>
+<td>420.65</td>
+<td>690.90</td>
+<td><strong>+64.2%</strong></td>
+</tr>
+<tr>
+<td>L2 misses (GB)</td>
+<td>246.5</td>
+<td>384.3</td>
+<td><strong>+55.9%</strong></td>
+</tr>
+<tr>
+<td>Occupancy</td>
+<td>73.2%</td>
+<td><strong>97.4%</strong></td>
+<td>+33%</td>
+</tr>
+<tr>
+<td>SM throughput</td>
+<td>2.82%</td>
+<td>1.70%</td>
+<td>−40%</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Severe regression despite higher occupancy.</strong> Unrolling generates 9 independent load<br>
+address streams — one per (ky, kx) — that the scheduler issues simultaneously. These 9<br>
+streams target different cache sets in L2, causing cache-line thrashing: L2 misses grow by<br>
++138 GB and DRAM traffic by +270 GB. The SM is busy issuing loads (occupancy 97%) but<br>
+stalls waiting for them to return (SM throughput 1.70%). Occupancy rises because unrolling<br>
+removes loop counter registers, reducing per-thread register pressure and allowing more<br>
+warps per SM — but those warps are all stalled on the same L2 bottleneck.</p>
+<p><strong>Conv2 results:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>naive</th>
+<th>unroll</th>
+<th>Δ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Time (ms)</td>
+<td>84.2</td>
+<td>86.9</td>
+<td>+3.2%</td>
+</tr>
+<tr>
+<td>GFLOPS</td>
+<td>175.7</td>
+<td>170.3</td>
+<td>−3.1%</td>
+</tr>
+<tr>
+<td>DRAM total (GB)</td>
+<td>16.31</td>
+<td>23.37</td>
+<td>+43.3%</td>
+</tr>
+<tr>
+<td>Occupancy</td>
+<td>73.8%</td>
+<td>97.6%</td>
+<td>+32%</td>
+</tr>
+</tbody>
+</table>
+<p>Near-neutral for Conv2. DRAM traffic still increases (+43%) but Conv2's smaller spatial<br>
+extent limits the absolute penalty. The same occupancy paradox appears (97.6%), confirming<br>
+the mechanism is identical.</p>
+<p><strong>Conclusion.</strong> Loop unrolling is harmful for memory-bound kernels: it amplifies the number<br>
+of concurrent load streams, overwhelming L2. It would be beneficial only when the kernel<br>
+is compute-bound or when the unrolled iterations access the same cache lines.</p>
+<hr>
+<h3 id="k3--shared-memory-weight--input-tile-smem_wi">K3 — Shared-Memory Weight + Input Tile (<code>smem_wi</code>) </h3>
+<p><strong>Idea.</strong> Extend K1 by also tiling the input into shared memory. Processing <code>ni</code> in chunks<br>
+of <code>SMWI_TILE_NI = 8</code> channels at a time, each iteration:</p>
+<ol>
+<li>Cooperatively loads <code>weight[ky][kx][nn][ni_chunk]</code> → <code>smem_w</code> (288 bytes)</li>
+<li>Cooperatively loads the 18×18 input patch <code>input[b][yout_base±1][xout_base±1][ni_chunk]</code><br>
+→ <code>smem_i</code> (10,368 bytes)</li>
+<li>Computes the 16×16 output tile entirely from shared memory.</li>
+</ol>
+<p>The 18×18 patch covers the full neighbourhood needed by any of the 16×16 output threads<br>
+using a 3×3 filter. Each input byte is fetched from DRAM once and reused 256 times within<br>
+the block. Total smem = (9×8 + 18×18×8) × 4 = <strong>10,656 bytes (10.4 KB)</strong> per block.<br>
+At 96 KB per SM: 96/10.4 ≈ 9 blocks — but the thread-count limit (2048/256 = 8) binds<br>
+first, so <strong>occupancy is unchanged from the smem-budget perspective</strong>.</p>
+<p>The grid is restructured to <code>blockIdx.z = b × Nn + nn</code> so all threads in a block share<br>
+the same batch index, keeping the input patch contiguous in memory.</p>
+<p><strong>Conv1 results:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>naive</th>
+<th>smem_wi</th>
+<th>Δ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Time (ms)</td>
+<td>686.4</td>
+<td>57.0</td>
+<td><strong>−91.7%</strong></td>
+</tr>
+<tr>
+<td>GFLOPS</td>
+<td>86.2</td>
+<td>1037.6</td>
+<td><strong>+12.0×</strong></td>
+</tr>
+<tr>
+<td>DRAM total (GB)</td>
+<td>420.65</td>
+<td>28.74</td>
+<td><strong>−93.2%</strong></td>
+</tr>
+<tr>
+<td>Actual AI</td>
+<td>0.141</td>
+<td>2.059</td>
+<td><strong>+14.6×</strong></td>
+</tr>
+<tr>
+<td>DRAM throughput</td>
+<td>94.0%</td>
+<td>77.2%</td>
+<td>−17 pp</td>
+</tr>
+<tr>
+<td>SM throughput</td>
+<td>2.82%</td>
+<td>44.1%</td>
+<td><strong>+15.6×</strong></td>
+</tr>
+<tr>
+<td>L1 requests (GB)</td>
+<td>969.8</td>
+<td>16.6</td>
+<td><strong>−98.3%</strong></td>
+</tr>
+<tr>
+<td>Occupancy</td>
+<td>73.2%</td>
+<td>37.3%</td>
+<td>−50%</td>
+</tr>
+</tbody>
+</table>
+<p>The 12× speedup comes from a 93% reduction in DRAM traffic. Each 18×18×8 input patch<br>
+(41 KB) is loaded once from DRAM and shared across all 256 threads and all 9 filter<br>
+positions, achieving 16×16 output reuse per input load. SM throughput jumps from 2.82%<br>
+to 44.1%. Occupancy falls to 37% — the smem allocation is not the cause (10.4 KB leaves<br>
+headroom), but the restructured grid (grid.z = B×Nn = 1024) creates fewer blocks per SM<br>
+on average. Nevertheless, the reduced memory-stall time dominates.</p>
+<p><strong>Conv2 results:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>naive</th>
+<th>smem_wi</th>
+<th>Δ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Time (ms)</td>
+<td>84.2</td>
+<td>12.5</td>
+<td><strong>−85.1%</strong></td>
+</tr>
+<tr>
+<td>GFLOPS</td>
+<td>175.7</td>
+<td>1181.5</td>
+<td><strong>+6.73×</strong></td>
+</tr>
+<tr>
+<td>DRAM total (GB)</td>
+<td>16.31</td>
+<td>0.169</td>
+<td><strong>−98.9%</strong></td>
+</tr>
+<tr>
+<td>Actual AI</td>
+<td>0.908</td>
+<td><strong>87.49</strong></td>
+<td><strong>+96×</strong></td>
+</tr>
+<tr>
+<td>DRAM throughput</td>
+<td>29.4%</td>
+<td>2.07%</td>
+<td>−93 pp</td>
+</tr>
+<tr>
+<td>SM throughput</td>
+<td>6.47%</td>
+<td>60.0%</td>
+<td><strong>+9.3×</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Conv2 smem_wi is the <strong>only kernel in this study to cross the ridge point (22.82)</strong>,<br>
+achieving an actual AI of 87.49 FLOPs/byte. DRAM traffic collapses to 162 MB: the 9.4 MB<br>
+weight is loaded in 8-channel tiles that are fully reused across all 14×14 = 196 spatial<br>
+positions, and the 8 MB input (which fits in L2) contributes almost nothing to DRAM reads.<br>
+SM throughput reaches 60%, confirming a genuine transition from memory-bound to<br>
+compute-bound operation.</p>
+<hr>
+<h3 id="k4--register-blocking-regblock">K4 — Register Blocking (<code>regblock</code>) </h3>
+<p><strong>Idea.</strong> Each thread computes <code>REG_N = 4</code> consecutive output channels (<code>nn_base</code> to<br>
+<code>nn_base+3</code>) simultaneously. The input value <code>inp[b][y+ky][x+kx][ni]</code> is read once from<br>
+memory into a register (<code>in_val</code>), then multiplied against 4 different weight values. This<br>
+amortises the input memory traffic by 4× in principle.</p>
+<p>Grid Z = ⌈Nn/4⌉ instead of Nn; everything else in the grid is unchanged.</p>
+<p><strong>Conv1 results:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>naive</th>
+<th>regblock</th>
+<th>Δ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Time (ms)</td>
+<td>686.4</td>
+<td>397.2</td>
+<td><strong>−42.1%</strong></td>
+</tr>
+<tr>
+<td>GFLOPS</td>
+<td>86.2</td>
+<td>149.0</td>
+<td><strong>+1.73×</strong></td>
+</tr>
+<tr>
+<td>DRAM total (GB)</td>
+<td>420.65</td>
+<td>230.30</td>
+<td><strong>−45.2%</strong></td>
+</tr>
+<tr>
+<td>Actual AI</td>
+<td>0.141</td>
+<td>0.257</td>
+<td>+82%</td>
+</tr>
+<tr>
+<td>Occupancy</td>
+<td>73.2%</td>
+<td>49.4%</td>
+<td>−33%</td>
+</tr>
+</tbody>
+</table>
+<p>Input DRAM reads drop from ~420 GB to ~230 GB. The savings fall short of the theoretical<br>
+4× because each thread must also read 4× as many weight values (one per nn), partially<br>
+offsetting the gain. Occupancy drops from 73% to 49% because 4 accumulator registers<br>
+per thread increase register pressure. The 1.73× speedup confirms that input reuse is more<br>
+valuable than the occupancy cost in this regime.</p>
+<p><strong>Conv2 results:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>naive</th>
+<th>regblock</th>
+<th>Δ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Time (ms)</td>
+<td>84.2</td>
+<td>23.4</td>
+<td><strong>−72.2%</strong></td>
+</tr>
+<tr>
+<td>GFLOPS</td>
+<td>175.7</td>
+<td>631.5</td>
+<td><strong>+3.59×</strong></td>
+</tr>
+<tr>
+<td>DRAM total (GB)</td>
+<td>16.31</td>
+<td>1.792</td>
+<td><strong>−89.0%</strong></td>
+</tr>
+<tr>
+<td>Actual AI</td>
+<td>0.908</td>
+<td>8.258</td>
+<td><strong>+9.1×</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Conv2 benefits more (3.6× vs 1.7×) because the 4 consecutive <code>nn</code> values access weight<br>
+data that is already resident in L2 from the previous iteration, giving near-free weight<br>
+reuse on top of the 4× input reuse. Actual AI rises from 0.91 to 8.26 — approaching but<br>
+still below the ridge point.</p>
+<hr>
+<h3 id="k5--warp-level-ni-reduction-warp">K5 — Warp-Level ni Reduction (<code>warp</code>) </h3>
+<p><strong>Idea.</strong> An entire 32-lane warp collaborates on one output element. The flat<br>
+<code>(ky, kx, ni)</code> space (Conv1: 9×64 = 576 iterations; Conv2: 9×512 = 4,608) is striped<br>
+across lanes: lane <code>k</code> handles <code>t = k, k+32, k+64, …</code>. After accumulation, five rounds<br>
+of <code>__shfl_down_sync</code> fold the 32 partial sums into lane 0, which writes the output —<br>
+with no shared memory involved.</p>
+<p><strong>Memory coalescing improvement.</strong> In the naive kernel, adjacent threads differ in <code>xout</code>,<br>
+so they access <code>inp[...][xout][ni]</code> with a stride of <code>Ni × 4 = 256 bytes</code> between<br>
+neighbours — 64 cache lines for 32 threads. In K5, adjacent lanes differ only in <code>ni</code>:<br>
+<code>inp[...][same_xout][ni]</code> advances by 4 bytes between lanes. The entire warp's 32<br>
+accesses fit in one 128-byte cache line.</p>
+<p><strong>Conv1 results:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>naive</th>
+<th>warp</th>
+<th>Δ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Time (ms)</td>
+<td>686.4</td>
+<td>171.0</td>
+<td><strong>−75.1%</strong></td>
+</tr>
+<tr>
+<td>GFLOPS</td>
+<td>86.2</td>
+<td>346.1</td>
+<td><strong>+4.01×</strong></td>
+</tr>
+<tr>
+<td>DRAM total (GB)</td>
+<td>420.65</td>
+<td>15.04</td>
+<td><strong>−96.4%</strong></td>
+</tr>
+<tr>
+<td>Actual AI</td>
+<td>0.141</td>
+<td>3.936</td>
+<td><strong>+27.9×</strong></td>
+</tr>
+<tr>
+<td>DRAM throughput</td>
+<td>94.0%</td>
+<td>13.5%</td>
+<td>−86 pp</td>
+</tr>
+<tr>
+<td>SM throughput</td>
+<td>2.82%</td>
+<td>73.4%</td>
+<td><strong>+26×</strong></td>
+</tr>
+<tr>
+<td>L1 requests (GB)</td>
+<td>969.8</td>
+<td>236.8</td>
+<td>−75.6%</td>
+</tr>
+</tbody>
+</table>
+<p>DRAM drops from 420 GB to 15 GB — a 28× reduction driven entirely by coalescing: the<br>
+naive kernel wasted 63 of every 64 cache-line bytes fetched for input; the warp kernel uses<br>
+all 32 floats in each line. SM throughput jumps to 73.4%, the second-highest of all kernels.</p>
+<p><strong>Conv2 results:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>naive</th>
+<th>warp</th>
+<th>Δ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Time (ms)</td>
+<td>84.2</td>
+<td>39.3</td>
+<td><strong>−53.3%</strong></td>
+</tr>
+<tr>
+<td>GFLOPS</td>
+<td>175.7</td>
+<td>376.8</td>
+<td><strong>+2.15×</strong></td>
+</tr>
+<tr>
+<td>DRAM total (GB)</td>
+<td>16.31</td>
+<td>10.35</td>
+<td>−36.5%</td>
+</tr>
+<tr>
+<td>Actual AI</td>
+<td>0.908</td>
+<td>1.429</td>
+<td>+57%</td>
+</tr>
+<tr>
+<td>SM throughput</td>
+<td>6.47%</td>
+<td>70.9%</td>
+<td><strong>+10.9×</strong></td>
+</tr>
+</tbody>
+</table>
+<p>The DRAM reduction is more modest (37%) because Conv2's input was already partially<br>
+cached in L2 for the naive kernel. SM throughput still rises to 71%, confirming genuine<br>
+compute activity. The 2.15× speedup is smaller than Conv1's 4× because the coalescing<br>
+benefit is smaller when cache pressure is lower.</p>
+<hr>
+<h3 id="summary">Summary </h3>
+<table>
+<thead>
+<tr>
+<th>Kernel</th>
+<th>Technique</th>
+<th>Conv1 vs naive</th>
+<th>Conv2 vs naive</th>
+<th>Key tradeoff</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>K1 smem_w</td>
+<td>Shared weight tile</td>
+<td>+3%</td>
+<td><strong>−15%</strong></td>
+<td>2.25 KB smem: no penalty for Conv1; 18 KB smem cuts Conv2 occupancy 16%</td>
+</tr>
+<tr>
+<td>K2 unroll</td>
+<td><code>#pragma unroll</code> (ky/kx)</td>
+<td><strong>−39%</strong></td>
+<td>−3%</td>
+<td>9 simultaneous load streams thrash L2; DRAM +64% for Conv1</td>
+</tr>
+<tr>
+<td>K3 smem_wi</td>
+<td>Shared weight + input tile</td>
+<td><strong>+12.0×</strong></td>
+<td><strong>+6.73×</strong></td>
+<td>Best overall; 10.4 KB smem; no occupancy penalty; DRAM −93%/−99%</td>
+</tr>
+<tr>
+<td>K4 regblock</td>
+<td>REG_N=4 output channels/thread</td>
+<td>+1.73×</td>
+<td>+3.59×</td>
+<td>Input reads ÷4; register pressure −33% occupancy</td>
+</tr>
+<tr>
+<td>K5 warp</td>
+<td>Warp ni-reduction + coalescing</td>
+<td>+4.01×</td>
+<td>+2.15×</td>
+<td>Stride-1 ni access; DRAM −96% Conv1; no smem; shfl reduction overhead</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Most impactful.</strong> K3 smem_wi — 12× (Conv1) and 6.7× (Conv2). Tiling both weight and<br>
+input into shared memory simultaneously eliminates the two dominant DRAM bottlenecks.<br>
+Conv2 smem_wi is the only kernel to enter the compute-bound regime (actual AI 87.49 &gt;<br>
+ridge point 22.82).</p>
+<p><strong>Counterproductive optimisations.</strong> K2 (unroll) regresses Conv1 by 39% due to L2<br>
+cache thrashing from 9 simultaneous load streams. K1 (smem_w) regresses Conv2 by 15%<br>
+because the 18 KB tile reduces SM occupancy and paradoxically increases DRAM traffic.</p>
+<p><strong>Insight.</strong> Conv1 and Conv2 have opposite characteristics: Conv1 has a large spatial<br>
+footprint (224×224) but a small weight (144 KB), making spatial input reuse the key<br>
+lever. Conv2 has a tiny spatial footprint (14×14) with a large weight (9.4 MB), so<br>
+both weight and input tiling are required but the small spatial size makes the tiling<br>
+overhead negligible, ultimately pushing the kernel past the ridge point.</p>
+<hr>
+<p><em>Source files:</em> <code>conv.cu</code>, <code>conv_ref.h</code> | <em>Profiling script:</em> <code>run_ncu.sh</code> | <em>Roofline plot:</em> <code>plot_roofline.py</code></p>
+
+      </div>
+      
+      
+    
+    
+    
+    
+    
+    
+  
+    </body></html>
