@@ -1,0 +1,35 @@
+=== Attention CUDA   device: NVIDIA TITAN V   D=64 ===
+
+
+=== PREFILL  S=4096 ===
+  [verify naive:    PASS]
+  prefill_naive                                        7.356 ms    291.99 GFLOPS
+  [verify flash:    PASS]
+  prefill_flash (tile=16)                              5.444 ms    394.59 GFLOPS
+  [verify flash_v2: PASS]
+  prefill_flash_v2 (tile=32)                           8.433 ms    254.73 GFLOPS
+
+=== PREFILL  S=65536 ===
+  prefill_naive: skipped (score_buf 17.2 GB)
+  [verify flash:    PASS]
+  prefill_flash (tile=16)                           1406.630 ms    390.84 GFLOPS
+  [verify flash_v2: PASS]
+  prefill_flash_v2 (tile=32)                        2127.982 ms    258.35 GFLOPS
+
+=== DECODE   C=4096 ===
+  [verify naive:    PASS]
+  decode_naive                                         0.417 ms      2.52 GFLOPS
+  [verify flash:    PASS]
+  decode_flash (slice=256)                             0.109 ms      9.66 GFLOPS
+  [verify flash_v2: PASS]
+  decode_flash_v2 (slice=256, float4)                  0.106 ms      9.85 GFLOPS
+
+=== DECODE   C=65536 ===
+  [verify naive:    PASS]
+  decode_naive                                         8.700 ms      1.93 GFLOPS
+  [verify flash:    PASS]
+  decode_flash (slice=256)                             0.186 ms     90.02 GFLOPS
+  [verify flash_v2: PASS]
+  decode_flash_v2 (slice=256, float4)                  0.183 ms     91.53 GFLOPS
+
+Done.

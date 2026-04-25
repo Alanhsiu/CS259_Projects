@@ -1,0 +1,30 @@
+==PROF== Connected to process 3771473 (/usr/eda/home2/alanhsiu/project1/part2/attention)
+==PROF== Profiling "prefill_flash_v2_kernel": 0%....50%....100% - 10 passes
+=== Attention CUDA   device: NVIDIA TITAN V   D=64 ===
+
+
+=== PREFILL  S=4096 ===
+  [verify naive:    PASS]
+  prefill_naive                                        7.491 ms    286.76 GFLOPS
+  [verify flash:    PASS]
+  prefill_flash (tile=16)                              5.505 ms    390.19 GFLOPS
+  [verify flash_v2: PASS]
+  prefill_flash_v2 (tile=32)                           8.496 ms    252.82 GFLOPS
+
+Done.
+==PROF== Disconnected from process 3771473
+[3771473] attention@127.0.0.1
+  prefill_flash_v2_kernel(const float *, const float *, const float *, float *, int) (4096, 1, 1)x(64, 1, 1), Context 1, Stream 7, Device 0, CC 7.0
+    Section: Command line profiler metrics
+    ------------------------------------------------------ ----------- ------------
+    Metric Name                                            Metric Unit Metric Value
+    ------------------------------------------------------ ----------- ------------
+    dram__bytes_read.sum                                         Mbyte         3.15
+    dram__bytes_write.sum                                        Mbyte         1.20
+    gpu__dram_throughput.avg.pct_of_peak_sustained_elapsed           %         0.08
+    l1tex__t_bytes.sum                                           Gbyte         4.30
+    sm__throughput.avg.pct_of_peak_sustained_elapsed                 %        36.34
+    sm__warps_active.avg.pct_of_peak_sustained_active                %        14.57
+    smsp__sass_thread_inst_executed_op_ffma_pred_on.sum           inst   5371330560
+    ------------------------------------------------------ ----------- ------------
+

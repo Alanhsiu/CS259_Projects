@@ -1,0 +1,151 @@
+==PROF== Connected to process 3780687 (/usr/eda/home2/alanhsiu/project1/part2/attention)
+==PROF== Profiling "prefill_flash_kernel": 0%
+==WARNING== Launching the workload is taking more time than expected. If this continues to hang, terminate the profile and re-try by profiling the range of all related launches using '--replay-mode range'. See https://docs.nvidia.com/nsight-compute/ProfilingGuide/index.html#replay for more details.
+....50%....100% - 75 passes
+=== Attention CUDA   device: NVIDIA TITAN V   D=64 ===
+
+
+=== PREFILL  S=65536 ===
+  prefill_naive: skipped (score_buf 17.2 GB)
+  [verify flash:    PASS]
+  prefill_flash (tile=16)                           1404.555 ms    391.42 GFLOPS
+  [verify flash_v2: PASS]
+  prefill_flash_v2 (tile=32)                        2125.292 ms    258.68 GFLOPS
+
+Done.
+==PROF== Disconnected from process 3780687
+[3780687] attention@127.0.0.1
+  prefill_flash_kernel(const float *, const float *, const float *, float *, int) (65536, 1, 1)x(64, 1, 1), Device 0, CC 7.0, Invocations 1
+    Section: Compute Workload Analysis
+    -------------------- ----------- ------- ------- -------
+    Metric Name          Metric Unit Minimum Maximum Average
+    -------------------- ----------- ------- ------- -------
+    Executed Ipc Active   inst/cycle    2.28    2.28    2.28
+    Executed Ipc Elapsed  inst/cycle    2.28    2.28    2.28
+    Issue Slots Busy               %   57.03   57.03   57.03
+    Issued Ipc Active     inst/cycle    2.28    2.28    2.28
+    SM Busy                        %   57.03   57.03   57.03
+    -------------------- ----------- ------- ------- -------
+
+    Section: GPU Speed Of Light Throughput
+    ----------------------- ------------- ------------- ------------- -------------
+    Metric Name               Metric Unit       Minimum       Maximum       Average
+    ----------------------- ------------- ------------- ------------- -------------
+    DRAM Frequency          cycle/usecond        851.10        851.10        851.10
+    SM Frequency            cycle/nsecond          1.21          1.21          1.21
+    Elapsed Cycles                  cycle 1695130203.00 1695130203.00 1695130203.00
+    Memory Throughput                   %         80.92         80.92         80.92
+    DRAM Throughput                     %         80.92         80.92         80.92
+    Duration                       second          1.40          1.40          1.40
+    L1/TEX Cache Throughput             %         52.18         52.18         52.18
+    L2 Cache Throughput                 %         44.27         44.27         44.27
+    SM Active Cycles                cycle 1690195413.05 1690195413.05 1690195413.05
+    Compute (SM) Throughput             %         56.91         56.91         56.91
+    ----------------------- ------------- ------------- ------------- -------------
+
+    Section: GPU and Memory Workload Distribution
+    -------------------------- ----------- --------------- --------------- ---------------
+    Metric Name                Metric Unit         Minimum         Maximum         Average
+    -------------------------- ----------- --------------- --------------- ---------------
+    Average DRAM Active Cycles       cycle    966782281.33    966782281.33    966782281.33
+    Total DRAM Elapsed Cycles        cycle  28674734592.00  28674734592.00  28674734592.00
+    Average L1 Active Cycles         cycle   1690195413.05   1690195413.05   1690195413.05
+    Total L1 Elapsed Cycles          cycle 135493732054.00 135493732054.00 135493732054.00
+    Average L2 Active Cycles         cycle   1599762236.21   1599762236.21   1599762236.21
+    Total L2 Elapsed Cycles          cycle  77314914864.00  77314914864.00  77314914864.00
+    Average SM Active Cycles         cycle   1690195413.05   1690195413.05   1690195413.05
+    Total SM Elapsed Cycles          cycle 135493732054.00 135493732054.00 135493732054.00
+    Average SMSP Active Cycles       cycle   1687320578.22   1687320578.22   1687320578.22
+    Total SMSP Elapsed Cycles        cycle 541974928216.00 541974928216.00 541974928216.00
+    -------------------------- ----------- --------------- --------------- ---------------
+
+    Section: Instruction Statistics
+    ---------------------------------------- ----------- --------------- --------------- ---------------
+    Metric Name                              Metric Unit         Minimum         Maximum         Average
+    ---------------------------------------- ----------- --------------- --------------- ---------------
+    Avg. Executed Instructions Per Scheduler        inst    963897190.40    963897190.40    963897190.40
+    Executed Instructions                           inst 308447100928.00 308447100928.00 308447100928.00
+    Avg. Issued Instructions Per Scheduler          inst    963905418.14    963905418.14    963905418.14
+    Issued Instructions                             inst 308449733806.00 308449733806.00 308449733806.00
+    ---------------------------------------- ----------- --------------- --------------- ---------------
+
+    Section: Launch Statistics
+    -------------------------------- --------------- ---------- ---------- ----------
+    Metric Name                          Metric Unit    Minimum    Maximum    Average
+    -------------------------------- --------------- ---------- ---------- ----------
+    Block Size                                            64.00      64.00      64.00
+    Grid Size                                          65536.00   65536.00   65536.00
+    Registers Per Thread             register/thread      56.00      56.00      56.00
+    Shared Memory Configuration Size           Kbyte      98.30      98.30      98.30
+    Driver Shared Memory Per Block        byte/block       0.00       0.00       0.00
+    Dynamic Shared Memory Per Block       byte/block       0.00       0.00       0.00
+    Static Shared Memory Per Block       Kbyte/block       8.21       8.21       8.21
+    # SMs                                         SM      80.00      80.00      80.00
+    Threads                                   thread 4194304.00 4194304.00 4194304.00
+    Uses Green Context                                     0.00       0.00       0.00
+    Waves Per SM                                          74.47      74.47      74.47
+    -------------------------------- --------------- ---------- ---------- ----------
+
+    Section: Memory Workload Analysis
+    ----------------- ------------ ------- ------- -------
+    Metric Name        Metric Unit Minimum Maximum Average
+    ----------------- ------------ ------- ------- -------
+    Memory Throughput Gbyte/second  528.91  528.91  528.91
+    Mem Busy                     %   52.08   52.08   52.08
+    Max Bandwidth                %   80.92   80.92   80.92
+    L1/TEX Hit Rate              %    0.35    0.35    0.35
+    L2 Hit Rate                  %   32.17   32.17   32.17
+    Mem Pipes Busy               %   48.14   48.14   48.14
+    ----------------- ------------ ------- ------- -------
+
+    Section: Occupancy
+    ------------------------------- ----------- ------- ------- -------
+    Metric Name                     Metric Unit Minimum Maximum Average
+    ------------------------------- ----------- ------- ------- -------
+    Block Limit SM                        block   32.00   32.00   32.00
+    Block Limit Registers                 block   18.00   18.00   18.00
+    Block Limit Shared Mem                block   11.00   11.00   11.00
+    Block Limit Warps                     block   32.00   32.00   32.00
+    Theoretical Active Warps per SM        warp   22.00   22.00   22.00
+    Theoretical Occupancy                     %   34.38   34.38   34.38
+    Achieved Occupancy                        %   34.10   34.10   34.10
+    Achieved Active Warps Per SM           warp   21.83   21.83   21.83
+    ------------------------------- ----------- ------- ------- -------
+
+    Section: Scheduler Statistics
+    ---------------------------- ----------- ------- ------- -------
+    Metric Name                  Metric Unit Minimum Maximum Average
+    ---------------------------- ----------- ------- ------- -------
+    One or More Eligible                   %   57.13   57.13   57.13
+    Issued Warp Per Scheduler                   0.57    0.57    0.57
+    No Eligible                            %   42.87   42.87   42.87
+    Active Warps Per Scheduler          warp    5.47    5.47    5.47
+    Eligible Warps Per Scheduler        warp    1.05    1.05    1.05
+    ---------------------------- ----------- ------- ------- -------
+
+    Section: Source Counters
+    ------------------------- ----------- ------------- ------------- -------------
+    Metric Name               Metric Unit       Minimum       Maximum       Average
+    ------------------------- ----------- ------------- ------------- -------------
+    Branch Instructions Ratio           %          0.02          0.02          0.02
+    Branch Instructions              inst 5638324224.00 5638324224.00 5638324224.00
+    Branch Efficiency                   %        100.00        100.00        100.00
+    Avg. Divergent Branches                        0.00          0.00          0.00
+    ------------------------- ----------- ------------- ------------- -------------
+
+    Section: Warp State Statistics
+    ---------------------------------------- ----------- ------- ------- -------
+    Metric Name                              Metric Unit Minimum Maximum Average
+    ---------------------------------------- ----------- ------- ------- -------
+    Warp Cycles Per Issued Instruction             cycle    9.57    9.57    9.57
+    Warp Cycles Per Executed Instruction           cycle    9.57    9.57    9.57
+    Avg. Active Threads Per Warp                           32.00   32.00   32.00
+    Avg. Not Predicated Off Threads Per Warp               31.37   31.37   31.37
+    ---------------------------------------- ----------- ------- ------- -------
+
+  Note: The shown averages are calculated as the arithmetic mean of the metric values after the evaluation of the    
+  metrics for each individual kernel launch.                                                                         
+  If aggregating across varying launch configurations (like shared memory, cache config settings), the arithmetic    
+  mean can be misleading and looking at the individual results is recommended instead.                               
+  This output mode is backwards compatible to the per-kernel summary output of nvprof                                
+

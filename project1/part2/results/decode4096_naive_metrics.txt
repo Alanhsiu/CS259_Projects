@@ -1,0 +1,30 @@
+==PROF== Connected to process 3805280 (/usr/eda/home2/alanhsiu/project1/part2/attention)
+==PROF== Profiling "decode_naive_kernel": 0%....50%....100% - 10 passes
+=== Attention CUDA   device: NVIDIA TITAN V   D=64 ===
+
+
+=== DECODE   C=4096 ===
+  [verify naive:    PASS]
+  decode_naive                                         0.498 ms      2.11 GFLOPS
+  [verify flash:    PASS]
+  decode_flash (slice=256)                             0.267 ms      3.92 GFLOPS
+  [verify flash_v2: PASS]
+  decode_flash_v2 (slice=256, float4)                  0.265 ms      3.95 GFLOPS
+
+Done.
+==PROF== Disconnected from process 3805280
+[3805280] attention@127.0.0.1
+  decode_naive_kernel(const float *, const float *, const float *, float *, float *, int) (1, 1, 1)x(256, 1, 1), Context 1, Stream 7, Device 0, CC 7.0
+    Section: Command line profiler metrics
+    ------------------------------------------------------ ----------- ------------
+    Metric Name                                            Metric Unit Metric Value
+    ------------------------------------------------------ ----------- ------------
+    dram__bytes_read.sum                                         Mbyte         2.10
+    dram__bytes_write.sum                                         byte          512
+    gpu__dram_throughput.avg.pct_of_peak_sustained_elapsed           %         0.60
+    l1tex__t_bytes.sum                                           Mbyte        10.04
+    sm__throughput.avg.pct_of_peak_sustained_elapsed                 %         0.07
+    sm__warps_active.avg.pct_of_peak_sustained_active                %         7.30
+    smsp__sass_thread_inst_executed_op_ffma_pred_on.sum           inst       561152
+    ------------------------------------------------------ ----------- ------------
+
