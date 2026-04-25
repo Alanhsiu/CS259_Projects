@@ -1,0 +1,28 @@
+==PROF== Connected to process 1299936 (/usr/eda/home2/alanhsiu/project1/part1/conv)
+Device : NVIDIA TITAN V  (CC 7.0)
+
+=== Conv2-VGG  (B=16, Ny=14, Nx=14, Ni=512, Nn=512) ===
+  Running CPU reference==PROF== Profiling "conv_smem_kernel": 0%....50%....100% - 10 passes
+ ... done.
+
+  Kernel            Time(ms)      GFLOPS     MaxAbsErr  Status
+  ──────────────────────────────────────────────────────────────
+  smem_w              99.948      148.05      6.28e-10  [PASS]
+
+==PROF== Disconnected from process 1299936
+[1299936] conv@127.0.0.1
+  conv_smem_kernel(const float *, const float *, float *, int, int, int, int, int) (1, 14, 512)x(16, 16, 1), Context 1, Stream 7, Device 0, CC 7.0
+    Section: Command line profiler metrics
+    ------------------------------------------------------------- ----------- ------------
+    Metric Name                                                   Metric Unit Metric Value
+    ------------------------------------------------------------- ----------- ------------
+    dram__bytes_read.sum                                                Gbyte        18.06
+    dram__bytes_write.sum                                               Mbyte        47.16
+    gpu__dram_throughput.avg.pct_of_peak_sustained_elapsed                  %        27.74
+    l1tex__t_bytes_pipe_lsu_mem_global_op_ld.sum                        Gbyte       235.68
+    lts__t_bytes_equiv_l1sectormiss_pipe_lsu_mem_global_op_ld.sum       Gbyte        87.35
+    sm__throughput.avg.pct_of_peak_sustained_elapsed                        %         5.52
+    sm__warps_active.avg.pct_of_peak_sustained_active                       %        61.50
+    smsp__sass_thread_inst_executed_op_ffma_pred_on.sum                  inst   7398752256
+    ------------------------------------------------------------- ----------- ------------
+

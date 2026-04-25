@@ -1,0 +1,15 @@
+==PROF== Connected to process 1308184 (/usr/eda/home2/alanhsiu/project1/part1/conv)
+Device : NVIDIA TITAN V  (CC 7.0)
+
+=== Conv2-VGG  (B=16, Ny=14, Nx=14, Ni=512, Nn=512) ===
+  Running CPU reference==PROF== Profiling "conv_warp_kernel": 0%
+==WARNING== Launching the workload is taking more time than expected. If this continues to hang, terminate the profile and re-try by profiling the range of all related launches using '--replay-mode range'. See https://docs.nvidia.com/nsight-compute/ProfilingGuide/index.html#replay for more details.
+....50%....100% - 76 passes
+ ... done.
+
+  Kernel            Time(ms)      GFLOPS     MaxAbsErr  Status
+  ──────────────────────────────────────────────────────────────
+  warp                39.370      375.86      6.98e-10  [PASS]
+
+==PROF== Disconnected from process 1308184
+==PROF== Report: /usr/eda/home2/alanhsiu/project1/part1/results/conv2_warp.ncu-rep

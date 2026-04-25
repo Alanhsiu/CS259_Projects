@@ -1,0 +1,13 @@
+==PROF== Connected to process 1307666 (/usr/eda/home2/alanhsiu/project1/part1/conv)
+Device : NVIDIA TITAN V  (CC 7.0)
+
+=== Conv2-VGG  (B=16, Ny=14, Nx=14, Ni=512, Nn=512) ===
+  Running CPU reference==PROF== Profiling "conv_smem_wi_kernel": 0%....50%....100% - 76 passes
+ ... done.
+
+  Kernel            Time(ms)      GFLOPS     MaxAbsErr  Status
+  ──────────────────────────────────────────────────────────────
+  smem_wi             12.638     1170.85      1.75e-09  [PASS]
+
+==PROF== Disconnected from process 1307666
+==PROF== Report: /usr/eda/home2/alanhsiu/project1/part1/results/conv2_smem_wi.ncu-rep
