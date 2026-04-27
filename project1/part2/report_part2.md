@@ -45,19 +45,21 @@ Decode has only one query vector; the natural parallelism is across the C contex
 
 Each output row i attends to keys j = 0, 1, …, i (causal masking). The computation for row i is:
 
-1. **QK dot products**: i+1 keys × D multiply-adds = (i+1)·D FLOPs
-2. **Weighted V sum**: i+1 values × D multiply-adds = (i+1)·D FLOPs
+1. **QK dot products**: i+1 keys × D FMAs = (i+1)·D FMAs
+2. **Weighted V sum**: i+1 values × D FMAs = (i+1)·D FMAs
 
-Total over all rows:
+Total FMAs per row i = 2·(i+1)·D (the factor of 2 counts both QK and AV passes).
+Summing over all rows and converting FMAs to FLOPs (1 FMA = 2 FLOPs):
 
 ```
-FLOPs = Σ_{i=0}^{S-1} 2·(i+1)·D
-      = 2·D · Σ_{i=0}^{S-1} (i+1)
-      = 2·D · S·(S+1)/2
-      = D · S · (S+1)
+FMAs = Σ_{i=0}^{S-1} 2·(i+1)·D
+     = 2·D · S·(S+1)/2
+     = D · S · (S+1)
+
+FLOPs = FMAs × 2 = 2·D·S·(S+1)
 ```
 
-Including both the QK and AV passes, total = **2·D·S·(S+1)**.
+The factor of 2 in the final answer comes from the FMA→FLOPs conversion (1 FMA = 1 multiply + 1 add = 2 FLOPs), *not* from double-counting QK and AV — those are already accounted for in the per-row FMA count.
 
 | Workload | S | FLOPs |
 |---|---|---|
@@ -115,8 +117,8 @@ Theoretical AI assumes each input matrix element is read exactly once and each o
 
 | Workload | Algorithmic FLOPs | Min bytes | Theoretical AI |
 |---|---|---|---|
-| Prefill S=4096 | 2.15 × 10⁹ | 4 × 4096 × 64 × 4 = 4.19 MB | **537 FLOPs/byte** |
-| Prefill S=65536 | 549.8 × 10⁹ | 4 × 65536 × 64 × 4 = 67.1 MB | **8,190 FLOPs/byte** |
+| Prefill S=4096 | 2.148 × 10⁹ | 4 × 4096 × 64 × 4 = 4.194 MB | **512 FLOPs/byte** |
+| Prefill S=65536 | 549.8 × 10⁹ | 4 × 65536 × 64 × 4 = 67.1 MB | **8,192 FLOPs/byte** |
 | Decode C=4096 | 0.524 × 10⁶ | 2 × 4096 × 64 × 4 = 2.10 MB | **0.25 FLOPs/byte** |
 | Decode C=65536 | 8.39 × 10⁶ | 2 × 65536 × 64 × 4 = 33.6 MB | **0.25 FLOPs/byte** |
 
@@ -142,8 +144,8 @@ Measured AI = (ffma\_count × 2) / (dram\_read + dram\_write)
 
 | Kernel | Theoretical AI | Measured AI | Ratio | Explanation |
 |---|---|---|---|---|
-| prefill\_naive S=4096 | 537 FLOPs/B | 28.2 FLOPs/B | 19× lower | Writes S×S score buffer (81 MB) not in theoretical min-bytes |
-| prefill\_flash S=4096 | 537 FLOPs/B | 2,475 FLOPs/B | **4.6× higher** | Online softmax adds ~4.7× extra FFMA vs bare QK+AV; data cached in L2 |
+| prefill\_naive S=4096 | 512 FLOPs/B | 28.2 FLOPs/B | 18× lower | Writes S×S score buffer (81 MB) not in theoretical min-bytes |
+| prefill\_flash S=4096 | 512 FLOPs/B | 2,475 FLOPs/B | **4.8× higher** | Online softmax adds ~4.7× extra FFMA vs bare QK+AV; data cached in L2 |
 | prefill\_flash S=65536 | 8,190 FLOPs/B | 3.70 FLOPs/B | 2,200× lower | K/V re-read S/2 times each on average; total DRAM = 742 GB not 67 MB |
 | decode\_naive C=65536 | 0.25 FLOPs/B | 0.50 FLOPs/B | 2× higher | Writes score buffer (C×4 bytes) beyond minimum; slightly more FFMA from softmax |
 | decode\_flash C=65536 | 0.25 FLOPs/B | 2.40 FLOPs/B | **9.6× higher** | Online softmax FFMA inflates numerator; DRAM close to minimum |
@@ -166,6 +168,9 @@ Key observations:
 | prefill\_flash\_v2 S=4096 | 2,469 FLOPs/B | >> ridge | compute | 255 / 14900 = **1.7%** |
 | prefill\_flash S=65536 | 3.70 FLOPs/B | < ridge | **memory** | 391 / (652.8×3.70) = **16.2%** |
 | prefill\_flash\_v2 S=65536 | 237 FLOPs/B | >> ridge | compute | 258 / 14900 = **1.7%** |
+| decode\_naive C=4096 | 0.53 FLOPs/B | << ridge | **memory** | 2.52 / (652.8×0.53) = **0.73%** |
+| decode\_flash C=4096 | 2.49 FLOPs/B | << ridge | **memory** | 9.66 / (652.8×2.49) = **0.59%** |
+| decode\_flash\_v2 C=4096 | 2.48 FLOPs/B | << ridge | **memory** | 9.85 / (652.8×2.48) = **0.61%** |
 | decode\_naive C=65536 | 0.50 FLOPs/B | << ridge | **memory** | 1.93 / (652.8×0.50) = **0.59%** |
 | decode\_flash C=65536 | 2.40 FLOPs/B | < ridge | **memory** | 90 / (652.8×2.40) = **5.7%** |
 | decode\_flash\_v2 C=65536 | 2.40 FLOPs/B | < ridge | **memory** | 91.5 / (652.8×2.40) = **5.8%** |

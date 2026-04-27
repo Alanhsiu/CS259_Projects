@@ -87,15 +87,17 @@
 <h3 id="prefill-causal-d64">Prefill (causal, D=64) </h3>
 <p>Each output row i attends to keys j = 0, 1, …, i (causal masking). The computation for row i is:</p>
 <ol>
-<li><strong>QK dot products</strong>: i+1 keys × D multiply-adds = (i+1)·D FLOPs</li>
-<li><strong>Weighted V sum</strong>: i+1 values × D multiply-adds = (i+1)·D FLOPs</li>
+<li><strong>QK dot products</strong>: i+1 keys × D FMAs = (i+1)·D FMAs</li>
+<li><strong>Weighted V sum</strong>: i+1 values × D FMAs = (i+1)·D FMAs</li>
 </ol>
-<p>Total over all rows:</p>
-<pre data-role="codeBlock" data-info="" class="language-text"><code>FLOPs = Σ_{i=0}^{S-1} 2·(i+1)·D
-      = 2·D · Σ_{i=0}^{S-1} (i+1)
-      = 2·D · S·(S+1)/2
-      = D · S · (S+1)
-</code></pre><p>Including both the QK and AV passes, total = <strong>2·D·S·(S+1)</strong>.</p>
+<p>Total FMAs per row i = 2·(i+1)·D (the factor of 2 counts both QK and AV passes).<br>
+Summing over all rows and converting FMAs to FLOPs (1 FMA = 2 FLOPs):</p>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>FMAs = Σ_{i=0}^{S-1} 2·(i+1)·D
+     = 2·D · S·(S+1)/2
+     = D · S · (S+1)
+
+FLOPs = FMAs × 2 = 2·D·S·(S+1)
+</code></pre><p>The factor of 2 in the final answer comes from the FMA→FLOPs conversion (1 FMA = 1 multiply + 1 add = 2 FLOPs), <em>not</em> from double-counting QK and AV — those are already accounted for in the per-row FMA count.</p>
 <table>
 <thead>
 <tr>
@@ -267,15 +269,15 @@
 <tbody>
 <tr>
 <td>Prefill S=4096</td>
-<td>2.15 × 10⁹</td>
-<td>4 × 4096 × 64 × 4 = 4.19 MB</td>
-<td><strong>537 FLOPs/byte</strong></td>
+<td>2.148 × 10⁹</td>
+<td>4 × 4096 × 64 × 4 = 4.194 MB</td>
+<td><strong>512 FLOPs/byte</strong></td>
 </tr>
 <tr>
 <td>Prefill S=65536</td>
 <td>549.8 × 10⁹</td>
 <td>4 × 65536 × 64 × 4 = 67.1 MB</td>
-<td><strong>8,190 FLOPs/byte</strong></td>
+<td><strong>8,192 FLOPs/byte</strong></td>
 </tr>
 <tr>
 <td>Decode C=4096</td>
@@ -433,16 +435,16 @@
 <tbody>
 <tr>
 <td>prefill_naive S=4096</td>
-<td>537 FLOPs/B</td>
+<td>512 FLOPs/B</td>
 <td>28.2 FLOPs/B</td>
-<td>19× lower</td>
+<td>18× lower</td>
 <td>Writes S×S score buffer (81 MB) not in theoretical min-bytes</td>
 </tr>
 <tr>
 <td>prefill_flash S=4096</td>
-<td>537 FLOPs/B</td>
+<td>512 FLOPs/B</td>
 <td>2,475 FLOPs/B</td>
-<td><strong>4.6× higher</strong></td>
+<td><strong>4.8× higher</strong></td>
 <td>Online softmax adds ~4.7× extra FFMA vs bare QK+AV; data cached in L2</td>
 </tr>
 <tr>
@@ -522,6 +524,27 @@
 <td>&gt;&gt; ridge</td>
 <td>compute</td>
 <td>258 / 14900 = <strong>1.7%</strong></td>
+</tr>
+<tr>
+<td>decode_naive C=4096</td>
+<td>0.53 FLOPs/B</td>
+<td>&lt;&lt; ridge</td>
+<td><strong>memory</strong></td>
+<td>2.52 / (652.8×0.53) = <strong>0.73%</strong></td>
+</tr>
+<tr>
+<td>decode_flash C=4096</td>
+<td>2.49 FLOPs/B</td>
+<td>&lt;&lt; ridge</td>
+<td><strong>memory</strong></td>
+<td>9.66 / (652.8×2.49) = <strong>0.59%</strong></td>
+</tr>
+<tr>
+<td>decode_flash_v2 C=4096</td>
+<td>2.48 FLOPs/B</td>
+<td>&lt;&lt; ridge</td>
+<td><strong>memory</strong></td>
+<td>9.85 / (652.8×2.48) = <strong>0.61%</strong></td>
 </tr>
 <tr>
 <td>decode_naive C=65536</td>
