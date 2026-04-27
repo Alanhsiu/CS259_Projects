@@ -39,7 +39,7 @@
 <tbody>
 <tr>
 <td>FP32 peak compute</td>
-<td>13,800 GFLOPS (13.8 TFLOPS)</td>
+<td>14,900 GFLOPS (14.9 TFLOPS)</td>
 </tr>
 <tr>
 <td>HBM2 peak bandwidth</td>
@@ -59,110 +59,95 @@
 </tr>
 <tr>
 <td>Ridge point</td>
-<td>21.1 FLOPs/byte</td>
+<td>22.82 FLOPs/byte</td>
 </tr>
 </tbody>
 </table>
-<p><strong>Theoretical FLOPs</strong> (D = 64, causal masking):</p>
+<hr>
+<h2 id="2-parallelization-strategy-q1">2. Parallelization Strategy (Q1) </h2>
+<h3 id="prefill-kernels">Prefill kernels </h3>
+<p>Each query row i is independent, so the natural mapping is <strong>one CUDA block per query row</strong>: <code>Grid = (S,)</code>. Within a block, D=64 threads handle the D output dimensions in parallel — one thread owns one output element and accumulates its result across all attended keys.</p>
+<p>For the flash kernels, the K/V tile (16 or 32 rows) is loaded cooperatively by all 64 threads into shared memory; each thread contributes <code>tile_rows</code> load operations strided by D. The cross-thread dot-product reduction uses <code>__shfl_down_sync</code> within each warp and a two-element <code>swarp[]</code> array for cross-warp communication.</p>
+<p><strong>Scalability</strong>:</p>
+<ul>
+<li><strong>Context length S</strong>: Grid grows linearly with S, which is ideal. However, flash attention must re-read K and V for every query row; total DRAM traffic grows as O(S²), so the kernel transitions from compute-bound (S=4096) to memory-bound (S=65536) as S increases.</li>
+<li><strong>Batch size</strong>: Not parallelized — the current implementation is single-batch. Adding a batch dimension would require an additional grid axis <code>Grid = (S, batch)</code> and proportionally more memory.</li>
+<li><strong>Head dimension D</strong>: Hard-coded as 64 (one thread per dimension). Changing D would require restructuring the block and the warp-level reduction.</li>
+</ul>
+<h3 id="decode-kernels">Decode kernels </h3>
+<p>Decode has only one query vector; the natural parallelism is across the C context positions. The flash decode kernels use <strong>one block per slice of C</strong>: <code>Grid = (⌈C/slice⌉,)</code>, Block = D=64 threads. This distributes K/V reads across multiple SMs.</p>
+<p><strong>Scalability</strong>:</p>
+<ul>
+<li><strong>Context length C</strong>: More blocks launch as C grows, improving SM utilization. For C=4096 (16 blocks), most SMs are idle; for C=65536 (256 blocks), all 80 SMs are engaged but at only ~10% occupancy — the problem is still too small to saturate the GPU.</li>
+<li><strong>Batch size</strong>: Same limitation as prefill — not parallelized across batch.</li>
+<li><strong>Slice size</strong>: Smaller slices launch more blocks (better SM coverage) but increase Phase 2 merge cost. Slice=256 was chosen to balance these effects.</li>
+</ul>
+<hr>
+<h2 id="3-algorithmic-flops-q2">3. Algorithmic FLOPs (Q2) </h2>
+<h3 id="prefill-causal-d64">Prefill (causal, D=64) </h3>
+<p>Each output row i attends to keys j = 0, 1, …, i (causal masking). The computation for row i is:</p>
+<ol>
+<li><strong>QK dot products</strong>: i+1 keys × D multiply-adds = (i+1)·D FLOPs</li>
+<li><strong>Weighted V sum</strong>: i+1 values × D multiply-adds = (i+1)·D FLOPs</li>
+</ol>
+<p>Total over all rows:</p>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>FLOPs = Σ_{i=0}^{S-1} 2·(i+1)·D
+      = 2·D · Σ_{i=0}^{S-1} (i+1)
+      = 2·D · S·(S+1)/2
+      = D · S · (S+1)
+</code></pre><p>Including both the QK and AV passes, total = <strong>2·D·S·(S+1)</strong>.</p>
 <table>
 <thead>
 <tr>
 <th>Workload</th>
-<th>Formula</th>
-<th>Value</th>
+<th>S</th>
+<th>FLOPs</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>Prefill S=4096</td>
-<td>2·D·S·(S+1)</td>
-<td>2.15 GFLOP</td>
+<td>4,096</td>
+<td>2 × 64 × 4096 × 4097 ≈ <strong>2.15 GFLOP</strong></td>
 </tr>
 <tr>
 <td>Prefill S=65536</td>
-<td>2·D·S·(S+1)</td>
-<td>549.8 GFLOP</td>
+<td>65,536</td>
+<td>2 × 64 × 65536 × 65537 ≈ <strong>549.8 GFLOP</strong></td>
 </tr>
+</tbody>
+</table>
+<h3 id="decode-d64">Decode (D=64) </h3>
+<p>One query vector attends to all C context positions:</p>
+<ol>
+<li><strong>QK dot products</strong>: C keys × D multiply-adds = C·D FLOPs</li>
+<li><strong>Weighted V sum</strong>: C values × D multiply-adds = C·D FLOPs</li>
+</ol>
+<p>Total = <strong>2·C·D</strong>. The softmax itself (exp, division) is not counted as FFMA but contributes to execution time.</p>
+<table>
+<thead>
+<tr>
+<th>Workload</th>
+<th>C</th>
+<th>FLOPs</th>
+</tr>
+</thead>
+<tbody>
 <tr>
 <td>Decode C=4096</td>
-<td>4·C·D</td>
-<td>1.05 MFLOP</td>
+<td>4,096</td>
+<td>2 × 4096 × 64 ≈ <strong>0.52 MFLOP</strong></td>
 </tr>
 <tr>
 <td>Decode C=65536</td>
-<td>4·C·D</td>
-<td>16.8 MFLOP</td>
+<td>65,536</td>
+<td>2 × 65536 × 64 ≈ <strong>8.39 MFLOP</strong></td>
 </tr>
 </tbody>
 </table>
-<p><strong>Theoretical arithmetic intensity</strong> (assuming each matrix element read once):</p>
-<table>
-<thead>
-<tr>
-<th>Workload</th>
-<th>I_arith</th>
-<th>Region</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Prefill S=4096</td>
-<td>537 FLOPs/byte</td>
-<td>compute-bound</td>
-</tr>
-<tr>
-<td>Prefill S=65536</td>
-<td>8590 FLOPs/byte</td>
-<td>compute-bound</td>
-</tr>
-<tr>
-<td>Decode (any C)</td>
-<td>0.52 FLOPs/byte</td>
-<td>memory-bound</td>
-</tr>
-</tbody>
-</table>
+<p><em>Note: NCU counts 4·C·D FFMA instructions for decode (not 2·C·D) because the online softmax update — <code>s = s*corr + es</code> and <code>o = o*corr + es*sV</code> — adds roughly 2·C·D additional multiply-adds beyond the bare QK/AV math. The algorithmic FLOP count uses only the mathematically necessary operations.</em></p>
 <hr>
-<h2 id="2-implementation-overview">2. Implementation Overview </h2>
-<h3 id="21-prefill-kernels">2.1 Prefill Kernels </h3>
-<p><strong><code>prefill_naive</code></strong> (baseline, S ≤ 4096 only)</p>
-<ul>
-<li>Grid: (S,) — one block per query row. Block: 256 threads.</li>
-<li>Allocates an S×S global score buffer. For S=4096 this is 67 MB; for S=65536 it would require 17.2 GB, exceeding TITAN V's 12 GB HBM — this kernel is skipped for the large-S workload.</li>
-<li>Three passes: (1) dot-products → score buffer, (2) global max + exp/sum for softmax, (3) weighted V accumulation.</li>
-</ul>
-<p><strong><code>prefill_flash</code></strong> (tile = 16)</p>
-<ul>
-<li>Implements Flash Attention with online softmax, eliminating the score buffer entirely.</li>
-<li>Grid: (S,), Block: D=64 threads — one thread per output dimension.</li>
-<li>Loads K/V in tiles of 16 rows into shared memory. For each key within a tile, the score (a dot product across all D dimensions) is reduced via <code>__shfl_down_sync</code> (intra-warp) and a two-entry shared array <code>swarp[2]</code> (cross-warp), then the running state (m, sum, out) is updated in registers using the online softmax correction formula: m_new = max(m, score); corr = exp(m − m_new); s = s·corr + exp(score − m_new).</li>
-</ul>
-<p><strong><code>prefill_flash_v2</code></strong> (tile = 32)</p>
-<ul>
-<li>Identical algorithm to <code>prefill_flash</code> but doubles the tile size to 32 rows.</li>
-<li>The 2× larger tile halves the number of outer-loop iterations and the associated <code>__syncthreads()</code> barriers and tile-load overhead, reducing per-query instruction count.</li>
-<li>Shared memory doubles from ~8 KB to ~16 KB per block, which reduces the number of blocks that can reside simultaneously per SM (occupancy penalty).</li>
-</ul>
-<h3 id="22-decode-kernels">2.2 Decode Kernels </h3>
-<p><strong><code>decode_naive</code></strong> (baseline)</p>
-<ul>
-<li>Grid: (1,) — single block with 256 threads. Maintains a global score buffer of size C.</li>
-<li>Three-pass softmax over all C context positions. With only one block, only one SM is used, leaving 79 of 80 SMs idle.</li>
-</ul>
-<p><strong><code>decode_flash</code></strong> (2-phase Flash Decoding, slice = 256)</p>
-<ul>
-<li>Phase 1: Each of ⌈C/256⌉ blocks processes a slice of 256 context positions using online softmax, writing local (m, d, O_partial) to global memory.</li>
-<li>Phase 2: A single block merges all partial results using the same online-softmax merge formula: for each partial block b, m_new = max(m, m_b), then rescale and accumulate.</li>
-<li>For C=65536 this launches 256 blocks, distributing work across all 80 SMs — though at only ~10% occupancy per SM due to the small block size (64 threads vs. the 2048-thread SM capacity).</li>
-</ul>
-<p><strong><code>decode_flash_v2</code></strong> (slice = 256, float4 loads)</p>
-<ul>
-<li>Identical 2-phase structure and slice size as <code>decode_flash</code>.</li>
-<li>Replaces scalar K/V loads with 128-bit <code>float4</code> loads, issuing one memory transaction per 4 floats. This reduces the number of load instructions and issues wider transactions to the memory subsystem.</li>
-</ul>
-<hr>
-<h2 id="3-performance-results">3. Performance Results </h2>
-<h3 id="31-benchmark-timing">3.1 Benchmark Timing </h3>
+<h2 id="4-execution-time-q3">4. Execution Time (Q3) </h2>
 <table>
 <thead>
 <tr>
@@ -260,7 +245,54 @@
 </tr>
 </tbody>
 </table>
-<h3 id="32-ncu-profiling-data">3.2 NCU Profiling Data </h3>
+<p>GFLOPS = algorithmic FLOPs / measured time.</p>
+<hr>
+<h2 id="5-roofline-analysis-q4">5. Roofline Analysis (Q4) </h2>
+<h3 id="theoretical-arithmetic-intensity">Theoretical arithmetic intensity </h3>
+<p>Theoretical AI assumes each input matrix element is read exactly once and each output element is written once:</p>
+<p><strong>Minimum bytes</strong> (float32 = 4 bytes):</p>
+<ul>
+<li>Prefill: read Q (S·D·4) + read K (S·D·4) + read V (S·D·4) + write O (S·D·4) = 4·S·D·4 bytes</li>
+<li>Decode: read q (D·4) + read K (C·D·4) + read V (C·D·4) + write o (D·4) ≈ 2·C·D·4 bytes (q, o negligible)</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Workload</th>
+<th>Algorithmic FLOPs</th>
+<th>Min bytes</th>
+<th>Theoretical AI</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Prefill S=4096</td>
+<td>2.15 × 10⁹</td>
+<td>4 × 4096 × 64 × 4 = 4.19 MB</td>
+<td><strong>537 FLOPs/byte</strong></td>
+</tr>
+<tr>
+<td>Prefill S=65536</td>
+<td>549.8 × 10⁹</td>
+<td>4 × 65536 × 64 × 4 = 67.1 MB</td>
+<td><strong>8,190 FLOPs/byte</strong></td>
+</tr>
+<tr>
+<td>Decode C=4096</td>
+<td>0.524 × 10⁶</td>
+<td>2 × 4096 × 64 × 4 = 2.10 MB</td>
+<td><strong>0.25 FLOPs/byte</strong></td>
+</tr>
+<tr>
+<td>Decode C=65536</td>
+<td>8.39 × 10⁶</td>
+<td>2 × 65536 × 64 × 4 = 33.6 MB</td>
+<td><strong>0.25 FLOPs/byte</strong></td>
+</tr>
+</tbody>
+</table>
+<h3 id="measured-arithmetic-intensity-from-ncu">Measured arithmetic intensity (from NCU) </h3>
+<p>Measured AI = (ffma_count × 2) / (dram_read + dram_write)</p>
 <table>
 <thead>
 <tr>
@@ -269,7 +301,7 @@
 <th>DRAM Read</th>
 <th>DRAM Write</th>
 <th>ffma count</th>
-<th>Measured AI (FLOPs/B)</th>
+<th><strong>Measured AI</strong></th>
 <th>Occupancy</th>
 <th>DRAM BW%</th>
 </tr>
@@ -281,7 +313,7 @@
 <td>33.88 MB</td>
 <td>47.76 MB</td>
 <td>1,149M</td>
-<td>28.2</td>
+<td>28.2 FLOPs/B</td>
 <td>47.88%</td>
 <td>1.66%</td>
 </tr>
@@ -291,7 +323,7 @@
 <td>3.15 MB</td>
 <td>1.19 MB</td>
 <td>5,371M</td>
-<td>2,475</td>
+<td>2,475 FLOPs/B</td>
 <td>29.71%</td>
 <td>0.12%</td>
 </tr>
@@ -301,7 +333,7 @@
 <td>3.15 MB</td>
 <td>1.20 MB</td>
 <td>5,371M</td>
-<td>2,469</td>
+<td>2,469 FLOPs/B</td>
 <td>14.57%</td>
 <td>0.08%</td>
 </tr>
@@ -311,7 +343,7 @@
 <td>742.72 GB</td>
 <td>18.21 MB</td>
 <td>1,374B</td>
-<td>3.70</td>
+<td>3.70 FLOPs/B</td>
 <td>34.08%</td>
 <td>80.90%</td>
 </tr>
@@ -321,7 +353,7 @@
 <td>11.56 GB</td>
 <td>18.21 MB</td>
 <td>1,374B</td>
-<td>237</td>
+<td>237 FLOPs/B</td>
 <td>15.57%</td>
 <td>0.83%</td>
 </tr>
@@ -331,7 +363,7 @@
 <td>2.10 MB</td>
 <td>0.51 KB</td>
 <td>561K</td>
-<td>0.53</td>
+<td>0.53 FLOPs/B</td>
 <td>7.30%</td>
 <td>0.60%</td>
 </tr>
@@ -341,7 +373,7 @@
 <td>2.10 MB</td>
 <td>1.28 KB</td>
 <td>2,621K</td>
-<td>2.49</td>
+<td>2.49 FLOPs/B</td>
 <td>3.12%</td>
 <td>2.64%</td>
 </tr>
@@ -351,7 +383,7 @@
 <td>2.11 MB</td>
 <td>1.02 KB</td>
 <td>2,621K</td>
-<td>2.48</td>
+<td>2.48 FLOPs/B</td>
 <td>3.12%</td>
 <td>2.93%</td>
 </tr>
@@ -361,7 +393,7 @@
 <td>33.96 MB</td>
 <td>1.90 MB</td>
 <td>8,978K</td>
-<td>0.50</td>
+<td>0.50 FLOPs/B</td>
 <td>7.30%</td>
 <td>0.63%</td>
 </tr>
@@ -371,7 +403,7 @@
 <td>33.56 MB</td>
 <td>1.44 MB</td>
 <td>41,943K</td>
-<td>2.40</td>
+<td>2.40 FLOPs/B</td>
 <td>9.89%</td>
 <td>38.29%</td>
 </tr>
@@ -381,27 +413,191 @@
 <td>33.56 MB</td>
 <td>1.44 MB</td>
 <td>41,943K</td>
-<td>2.40</td>
+<td>2.40 FLOPs/B</td>
 <td>9.96%</td>
 <td>40.07%</td>
 </tr>
 </tbody>
 </table>
-<p><em>Measured AI = (ffma_count × 2) / (DRAM_read + DRAM_write)</em></p>
+<h3 id="theoretical-vs-measured-ai--what-the-difference-reveals">Theoretical vs measured AI — what the difference reveals </h3>
+<table>
+<thead>
+<tr>
+<th>Kernel</th>
+<th>Theoretical AI</th>
+<th>Measured AI</th>
+<th>Ratio</th>
+<th>Explanation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>prefill_naive S=4096</td>
+<td>537 FLOPs/B</td>
+<td>28.2 FLOPs/B</td>
+<td>19× lower</td>
+<td>Writes S×S score buffer (81 MB) not in theoretical min-bytes</td>
+</tr>
+<tr>
+<td>prefill_flash S=4096</td>
+<td>537 FLOPs/B</td>
+<td>2,475 FLOPs/B</td>
+<td><strong>4.6× higher</strong></td>
+<td>Online softmax adds ~4.7× extra FFMA vs bare QK+AV; data cached in L2</td>
+</tr>
+<tr>
+<td>prefill_flash S=65536</td>
+<td>8,190 FLOPs/B</td>
+<td>3.70 FLOPs/B</td>
+<td>2,200× lower</td>
+<td>K/V re-read S/2 times each on average; total DRAM = 742 GB not 67 MB</td>
+</tr>
+<tr>
+<td>decode_naive C=65536</td>
+<td>0.25 FLOPs/B</td>
+<td>0.50 FLOPs/B</td>
+<td>2× higher</td>
+<td>Writes score buffer (C×4 bytes) beyond minimum; slightly more FFMA from softmax</td>
+</tr>
+<tr>
+<td>decode_flash C=65536</td>
+<td>0.25 FLOPs/B</td>
+<td>2.40 FLOPs/B</td>
+<td><strong>9.6× higher</strong></td>
+<td>Online softmax FFMA inflates numerator; DRAM close to minimum</td>
+</tr>
+</tbody>
+</table>
+<p>Key observations:</p>
+<ul>
+<li><strong>prefill_naive</strong>: measured AI far below theoretical because the score buffer write (47.76 MB) is not in the theoretical minimum — theory assumes one read/write per element, but naive writes S² scores to DRAM.</li>
+<li><strong>prefill_flash S=4096</strong>: measured AI far <em>above</em> theoretical because (a) online softmax multiplies instruction count by ~4.7× and (b) all data fits in L2, so DRAM denominator is near minimum while FFMA numerator is large.</li>
+<li><strong>prefill_flash S=65536</strong>: the single largest discrepancy (2,200×). Theoretical AI assumes K/V are each read once (67 MB), but the causal pattern forces re-reading every key for every later query, accumulating 742 GB of DRAM traffic. This is the signature of working-set overflow from HBM.</li>
+<li><strong>decode</strong>: measured AI is higher than theoretical mainly due to the online softmax FFMA overhead. Both naive and flash read approximately the theoretical minimum DRAM bytes.</li>
+</ul>
+<h3 id="roofline-placement-and-bound-identification">Roofline placement and bound identification </h3>
+<p><img src="results/roofline.png" alt="Roofline plot"></p>
+<table>
+<thead>
+<tr>
+<th>Kernel</th>
+<th>Measured AI</th>
+<th>Ridge = 22.82</th>
+<th>Bound</th>
+<th>% of roofline ceiling</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>prefill_naive S=4096</td>
+<td>28.2 FLOPs/B</td>
+<td>&gt; ridge</td>
+<td>compute</td>
+<td>292 / 14900 = <strong>2.0%</strong></td>
+</tr>
+<tr>
+<td>prefill_flash S=4096</td>
+<td>2,475 FLOPs/B</td>
+<td>&gt;&gt; ridge</td>
+<td>compute</td>
+<td>395 / 14900 = <strong>2.7%</strong></td>
+</tr>
+<tr>
+<td>prefill_flash_v2 S=4096</td>
+<td>2,469 FLOPs/B</td>
+<td>&gt;&gt; ridge</td>
+<td>compute</td>
+<td>255 / 14900 = <strong>1.7%</strong></td>
+</tr>
+<tr>
+<td>prefill_flash S=65536</td>
+<td>3.70 FLOPs/B</td>
+<td>&lt; ridge</td>
+<td><strong>memory</strong></td>
+<td>391 / (652.8×3.70) = <strong>16.2%</strong></td>
+</tr>
+<tr>
+<td>prefill_flash_v2 S=65536</td>
+<td>237 FLOPs/B</td>
+<td>&gt;&gt; ridge</td>
+<td>compute</td>
+<td>258 / 14900 = <strong>1.7%</strong></td>
+</tr>
+<tr>
+<td>decode_naive C=65536</td>
+<td>0.50 FLOPs/B</td>
+<td>&lt;&lt; ridge</td>
+<td><strong>memory</strong></td>
+<td>1.93 / (652.8×0.50) = <strong>0.59%</strong></td>
+</tr>
+<tr>
+<td>decode_flash C=65536</td>
+<td>2.40 FLOPs/B</td>
+<td>&lt; ridge</td>
+<td><strong>memory</strong></td>
+<td>90 / (652.8×2.40) = <strong>5.7%</strong></td>
+</tr>
+<tr>
+<td>decode_flash_v2 C=65536</td>
+<td>2.40 FLOPs/B</td>
+<td>&lt; ridge</td>
+<td><strong>memory</strong></td>
+<td>91.5 / (652.8×2.40) = <strong>5.8%</strong></td>
+</tr>
+</tbody>
+</table>
+<p>All kernels are far from their respective ceilings. The potential for further optimization depends on the bound:</p>
+<ul>
+<li><strong>Compute-bound kernels</strong> (prefill S=4096): the bottleneck is the online softmax serial dependency chain (m → corr → es → s → o), which prevents instruction-level pipelining. Occupancy is also limited by shared memory. Further gains would require software pipelining or FP16/tensor-core math to increase throughput.</li>
+<li><strong>Memory-bound kernels</strong> (prefill S=65536, all decode): the bottleneck is HBM bandwidth. For prefill at large S, the only path forward is reducing total DRAM traffic — e.g., by processing multiple query rows per block to increase K/V reuse. For decode, the problem is too small to saturate the GPU even at 256 blocks; larger batch sizes or longer context lengths would help.</li>
+</ul>
 <hr>
-<h2 id="4-analysis">4. Analysis </h2>
-<h3 id="41-prefill--necessity-of-flash-attention">4.1 Prefill — necessity of Flash Attention </h3>
-<p>Standard attention for S=65536 requires storing the full S×S score matrix:<br>
-65536² × 4 bytes = <strong>17.2 GB</strong>, which exceeds TITAN V's 12 GB HBM. The kernel cannot even be launched.<br>
-Flash Attention processes K and V in tiles and maintains only a scalar running state (m, d, out) per thread, requiring O(tile · D) shared memory regardless of S. This makes arbitrarily long sequences feasible.</p>
-<h3 id="42-prefill--occupancy-from-first-principles">4.2 Prefill — occupancy from first principles </h3>
-<p>Occupancy is constrained by shared memory per SM (96 KB) and the smem each block allocates:</p>
+<h2 id="6-implementation-overview-q5-context">6. Implementation Overview (Q5 context) </h2>
+<h3 id="61-prefill-kernels">6.1 Prefill Kernels </h3>
+<p><strong><code>prefill_naive</code></strong> (baseline, S ≤ 4096 only)</p>
+<ul>
+<li>Grid: (S,) — one block per query row. Block: 256 threads.</li>
+<li>Allocates an S×S global score buffer. For S=4096 this is 67 MB; for S=65536 it would require 17.2 GB, exceeding TITAN V's 12 GB HBM — this kernel cannot be launched for large S.</li>
+<li>Three passes: (1) dot-products → score buffer, (2) global max + exp/sum for softmax, (3) weighted V accumulation.</li>
+</ul>
+<p><strong><code>prefill_flash</code></strong> (tile = 16)</p>
+<ul>
+<li>Implements Flash Attention with online softmax, eliminating the score buffer entirely.</li>
+<li>Grid: (S,), Block: D=64 threads — one thread per output dimension.</li>
+<li>Loads K/V in tiles of 16 rows into shared memory. Score reduction uses <code>__shfl_down_sync</code> (intra-warp) and <code>swarp[2]</code> (cross-warp). Running state (m, sum, out) updated per key using: m_new = max(m, score); corr = exp(m − m_new); s = s·corr + exp(score − m_new).</li>
+</ul>
+<p><strong><code>prefill_flash_v2</code></strong> (tile = 32)</p>
+<ul>
+<li>Identical to <code>prefill_flash</code> but doubles tile size to 32 rows, halving outer-loop iterations and <code>__syncthreads()</code> barriers.</li>
+<li>Shared memory doubles from ~8 KB to ~16 KB per block (occupancy penalty, see Section 7).</li>
+</ul>
+<h3 id="62-decode-kernels">6.2 Decode Kernels </h3>
+<p><strong><code>decode_naive</code></strong> (baseline)</p>
+<ul>
+<li>Grid: (1,), Block: 256 threads. Global score buffer of size C.</li>
+<li>Three-pass softmax. Single block → single SM → 79 SMs idle.</li>
+</ul>
+<p><strong><code>decode_flash</code></strong> (2-phase Flash Decoding, slice = 256)</p>
+<ul>
+<li>Phase 1: ⌈C/256⌉ blocks, each processing 256 context positions with online softmax, writing (m, d, O_partial) to global.</li>
+<li>Phase 2: single block merges all partials using online softmax merge: m_new = max(m, m_b); rescale and accumulate.</li>
+</ul>
+<p><strong><code>decode_flash_v2</code></strong> (slice = 256, float4 loads)</p>
+<ul>
+<li>Identical to <code>decode_flash</code> but replaces scalar loads with 128-bit <code>float4</code> loads, reducing load instruction count.</li>
+</ul>
+<hr>
+<h2 id="7-analysis">7. Analysis </h2>
+<h3 id="71-prefill--necessity-of-flash-attention">7.1 Prefill — necessity of Flash Attention </h3>
+<p>Standard attention for S=65536 requires 65536² × 4 bytes = <strong>17.2 GB</strong> for the score matrix, exceeding TITAN V's 12 GB HBM. Flash Attention eliminates this by maintaining only O(tile·D) shared memory state regardless of S.</p>
+<h3 id="72-prefill--occupancy-from-first-principles">7.2 Prefill — occupancy from first principles </h3>
+<p>Occupancy is constrained by shared memory per SM (96 KB):</p>
 <table>
 <thead>
 <tr>
 <th>Kernel</th>
 <th>smem / block</th>
-<th>Max blocks / SM (96 KB ÷ smem)</th>
+<th>Max blocks / SM</th>
 <th>Threads / SM</th>
 <th>Theoretical occupancy</th>
 </tr>
@@ -423,153 +619,96 @@ Flash Attention processes K and V in tiles and maintains only a scalar running s
 </tr>
 </tbody>
 </table>
-<p>NCU confirms: prefill_flash occupancy = 29.7%, prefill_flash_v2 = 14.6% — closely matching the smem-limited theoretical values. Doubling the tile from 16 to 32 doubles the smem and roughly halves occupancy. This is the root cause of flash_v2's underperformance.</p>
-<h3 id="43-prefill--compute-bound-vs-memory-bound">4.3 Prefill — compute-bound vs memory-bound </h3>
+<p>NCU confirms: flash = 29.7%, flash_v2 = 14.6% — matching the smem-limited prediction. Doubling the tile halves occupancy.</p>
+<h3 id="73-prefill--compute-bound-vs-memory-bound">7.3 Prefill — compute-bound vs memory-bound </h3>
 <p><strong>S=4096 — compute-bound</strong></p>
-<p>Both flash kernels show measured AI ≈ 2,470 FLOPs/byte, far above the ridge point (21.1). DRAM throughput is below 0.12%; essentially all data fits in L1/L2 cache. Performance is compute-limited:</p>
+<p>Both flash kernels: measured AI ≈ 2,470 FLOPs/byte &gt;&gt; ridge (22.82). DRAM throughput &lt; 0.12%.</p>
 <ul>
-<li><code>prefill_flash</code>: sm__throughput = 57.5% → 395 GFLOPS (2.9% of FP32 peak). The bottleneck is the online softmax serial dependency chain: each iteration must complete m_new → corr → es → s_update → o_update before the next key can begin, preventing instruction-level pipelining.</li>
-<li><code>prefill_flash_v2</code>: occupancy halves to 14.6% (from the smem constraint above), sm__throughput falls to 36.3% → 255 GFLOPS. The fewer barrier syncs from the larger tile cannot compensate for the loss in latency-hiding capacity.</li>
+<li><code>prefill_flash</code>: sm__throughput = 57.5%, occupancy = 29.7% → 395 GFLOPS. Bottleneck: online softmax serial dependency (m → corr → es → s → o) prevents ILP.</li>
+<li><code>prefill_flash_v2</code>: occupancy = 14.6%, sm__throughput = 36.3% → 255 GFLOPS. The fewer syncthreads barriers cannot compensate for halved warp count.</li>
 </ul>
-<p><strong>Why flash_v2 has more FFMA than naive (5,371M vs 1,149M)</strong></p>
-<p>The flash kernels execute approximately 4.7× more FFMA instructions than naive for the same mathematical output. In addition to the QK dot product (identical to naive), each key processed by flash requires the online softmax update: <code>s = s*corr + es</code> (1 FFMA) and <code>o = o*corr + es*sV</code> (1–2 FFMA), plus the score scaling. This extra arithmetic is what drives the measured AI to 2,475 FLOPs/byte — the DRAM bytes are the same but the numerator is much larger.</p>
 <p><strong>S=65536 — memory-bound despite identical algorithm</strong></p>
-<p>This is the most instructive finding. <code>prefill_flash</code> achieves 391 GFLOPS at S=65536, nearly identical to its S=4096 result. Yet the bottleneck is completely different:</p>
-<ul>
-<li>DRAM throughput = <strong>80.9%</strong> of peak (≈ 528 GB/s measured)</li>
-<li>DRAM read = <strong>742.72 GB</strong> (vs only 3.15 MB at S=4096)</li>
-</ul>
-<p>The measured AI drops from a theoretical 8,590 FLOPs/byte to just <strong>3.70 FLOPs/byte</strong> — below the ridge point. Why? Flash attention reads K and V tile-by-tile for each of the S=65536 query rows. Key j is accessed by queries j, j+1, …, S−1, an average of S/2 ≈ 32,768 times. Total K+V DRAM traffic ≈ S²/2 × 2D × 4 bytes ≈ 1.1 TB, far exceeding the 4.5 MB L2 cache; every tile fetch is a cold miss.</p>
-<p><strong>Why DRAM BW = 80.9% but roofline efficiency = only 16.2%</strong></p>
-<p>On a log-log roofline, the kernel sits at (AI=3.70, 391 GFLOPS) while the memory-bound roofline at that AI predicts 652.8 × 3.70 = 2,415 GFLOPS. The gap (16.2%) arises from <strong>causal load imbalance</strong>: block 0 processes 1 key while block 65535 processes 65535 keys. At any given time the active SM set contains a mix of near-finished early blocks and work-heavy late blocks. Early blocks complete almost instantly and their SMs sit idle, pulling down average throughput. The 80.9% DRAM figure is dominated by the final wave of large blocks and does not reflect the steady-state utilization across the full kernel lifetime.</p>
-<p><strong>S=65536, flash_v2 — cache efficiency vs occupancy tradeoff</strong></p>
-<p><code>prefill_flash_v2</code> at S=65536 shows a striking contrast:</p>
-<ul>
-<li>DRAM read = only <strong>11.56 GB</strong> (vs 742.72 GB for flash) — 64× less DRAM traffic.</li>
-<li>The 2× larger tile (32 rows) doubles the temporal locality: a K/V tile loaded by block i covers twice as many subsequent blocks before being evicted from L2, dramatically increasing the L2 hit rate.</li>
-<li>Yet performance is <strong>worse</strong> (258 vs 391 GFLOPS). Occupancy drops from 34% to 16% (smem constraint), halving the number of warps available to hide latency. sm__throughput falls from 56.8% to 37.0%. Even though DRAM is no longer the bottleneck, the compute pipeline is severely underutilized.</li>
-</ul>
-<p>This demonstrates a fundamental tradeoff: larger tiles improve cache reuse but pay an occupancy tax that can exceed the benefit.</p>
-<h3 id="44-decode--memory-bound-multi-block-parallelism-is-key">4.4 Decode — memory-bound, multi-block parallelism is key </h3>
-<p>All decode kernels show measured AI ≈ 0.5–2.5 FLOPs/byte, far below the ridge point. Decode is fundamentally memory-bound: with only one query vector, arithmetic is negligible compared to the cost of streaming the entire KV cache from HBM.</p>
-<p><strong>Why decode_flash has higher AI than decode_naive (2.49 vs 0.53)</strong></p>
-<p>Flash decode performs the same online softmax update per key as flash prefill (extra ≈ 3–4 FFMA per key), yielding ~4.7× more total FFMA instructions (2,621K vs 561K) while reading the same DRAM bytes. The AI increases from 0.53 to 2.49 FLOPs/byte — a rightward shift on the roofline. The kernel remains memory-bound (2.49 &lt;&lt; 21.1 ridge), but the additional compute makes slightly better use of each byte fetched.</p>
-<p><strong>decode_naive</strong>: Grid = (1,) — single block, single SM. For C=65536, DRAM throughput = 0.63% despite the kernel being memory-bound. A single block with 256 threads can issue only a limited number of outstanding memory requests, leaving 99.4% of HBM bandwidth unused. This is the classic single-threaded memory bottleneck.</p>
-<p><strong>decode_flash</strong>: Launches ⌈C/256⌉ = 256 blocks for C=65536, distributing work across all 80 SMs. DRAM throughput rises to <strong>38.3%</strong> and performance improves <strong>46.8×</strong> over naive. Having many blocks in flight simultaneously allows hundreds of memory transactions to be outstanding at once, far better utilizing HBM.</p>
-<p><strong>decode_flash_v2 (+ float4)</strong>: Same 256 blocks as flash. The <code>float4</code> loads increase L1-texture traffic from 33.70 MB to 98.71 MB — wider vector fetches pull in more cache-line data per instruction, increasing L1 pressure but also coalescing more data per transaction. DRAM throughput rises marginally to <strong>40.1%</strong>, yielding a small but consistent improvement: 91.5 vs 90.0 GFLOPS for C=65536.</p>
-<p>All decode kernels are severely below DRAM peak (40% best case). The root cause is the inherently small problem: 256 blocks × 64 threads = 16,384 active threads, versus TITAN V's theoretical capacity of 80 SMs × 2048 threads = 163,840 threads. Occupancy is ~10%, leaving most of the GPU's memory-request bandwidth idle.</p>
-<h3 id="45-why-optimizations-sometimes-fail">4.5 Why optimizations sometimes fail </h3>
+<p><code>prefill_flash</code>: DRAM throughput = 80.9% (≈528 GB/s), DRAM read = 742.72 GB. Measured AI = 3.70 FLOPs/byte (below ridge). Key j is read by queries j through S−1, averaging S/2 ≈ 32,768 re-reads; total traffic ≈ 1.1 TB &gt;&gt; 4.5 MB L2.</p>
+<p><strong>Why DRAM BW = 80.9% but roofline efficiency = only 16.2%</strong>: Causal load imbalance — block i processes i+1 keys. Early blocks (small i) finish almost instantly and their SMs go idle; late blocks dominate runtime. The 80.9% DRAM figure reflects only the final waves of large blocks, not the average across the full kernel. The roofline model assumes uniform load distribution, so the gap is a direct measure of the imbalance penalty.</p>
+<p><strong>S=65536, flash_v2 — tradeoff</strong></p>
+<p>DRAM read drops 64× (11.56 GB vs 742 GB) due to better L2 reuse from the larger tile. Yet performance is worse (258 vs 391 GFLOPS): occupancy drops from 34% to 16%, sm__throughput falls from 56.8% to 37.0%. Cache efficiency gains are outweighed by occupancy loss.</p>
+<h3 id="74-decode--multi-block-parallelism">7.4 Decode — multi-block parallelism </h3>
+<p>All decode kernels: AI ≈ 0.5–2.5 FLOPs/byte &lt;&lt; ridge. Memory-bound.</p>
+<p><strong>decode_naive</strong>: DRAM throughput = 0.63% with single block — only one SM issues memory requests, leaving 99.4% of HBM bandwidth idle.</p>
+<p><strong>decode_flash</strong>: 256 blocks → DRAM throughput rises to 38.3% → <strong>46.8× speedup</strong>. Hundreds of concurrent memory requests better utilize HBM.</p>
+<p><strong>decode_flash_v2</strong> (float4): Same 256 blocks. L1-texture traffic increases from 33.70 MB to 98.71 MB (wider vector fetches), DRAM throughput rises to 40.1% → 91.5 vs 90.0 GFLOPS.</p>
+<p>Root cause of 40% ceiling: 256 blocks × 64 threads = 16,384 threads vs GPU capacity of 163,840. Only ~10% occupancy — the problem is simply too small to saturate the hardware.</p>
+<hr>
+<h2 id="8-optimizations-q5">8. Optimizations (Q5) </h2>
 <table>
 <thead>
 <tr>
 <th>Optimization</th>
-<th>Expectation</th>
+<th>Workload</th>
+<th>Expected benefit</th>
 <th>Actual outcome</th>
 <th>Root cause</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>prefill_flash_v2: tile 16→32</td>
-<td>Fewer outer iterations → faster</td>
-<td>Slower at S=4096 (255 vs 395 GFLOPS)</td>
-<td>smem 8→16 KB, occupancy 34%→15%, sm__throughput 57%→36%</td>
+<td>Flash Attention (no score buffer)</td>
+<td>Prefill S=65536</td>
+<td>Enables large-S</td>
+<td><strong>Essential</strong> (naive OOM)</td>
+<td>Eliminates O(S²) buffer</td>
 </tr>
 <tr>
-<td>prefill_flash_v2 at S=65536</td>
+<td>Flash Attention</td>
+<td>Prefill S=4096</td>
+<td>Reduce DRAM traffic</td>
+<td><strong>+35% speedup</strong> (1.35×)</td>
+<td>DRAM traffic 81 MB → 4.3 MB</td>
+</tr>
+<tr>
+<td>Larger tile 16→32 (flash_v2)</td>
+<td>Prefill S=4096</td>
+<td>Fewer syncthreads</td>
+<td><strong>Slower</strong> (0.87×)</td>
+<td>smem 8→16 KB; occupancy 34%→15%; sm__throughput 57%→36%</td>
+</tr>
+<tr>
+<td>Larger tile 16→32 (flash_v2)</td>
+<td>Prefill S=65536</td>
 <td>Better L2 cache reuse</td>
-<td>Still slower (258 vs 391 GFLOPS) despite 64× less DRAM</td>
-<td>Low occupancy outweighs cache gains; sm__throughput 37% vs 57%</td>
+<td><strong>Slower</strong> (0.66×)</td>
+<td>64× less DRAM but occupancy penalty dominates</td>
 </tr>
 <tr>
-<td>decode_flash_v2: float4</td>
-<td>More efficient loads, faster</td>
-<td>Marginal +1.7% at C=65536</td>
-<td>Memory-bound; both kernels read identical DRAM bytes; float4 only marginally helps L1</td>
+<td>Multi-block flash decode</td>
+<td>Decode C=65536</td>
+<td>More SM utilization</td>
+<td><strong>+47× speedup</strong></td>
+<td>DRAM BW% 0.63%→38%; all 80 SMs engaged</td>
 </tr>
 <tr>
-<td>decode_flash_v2 at C=4096</td>
-<td>Measurable speedup</td>
-<td>Negligible (9.85 vs 9.66 GFLOPS)</td>
+<td>float4 loads (flash_v2)</td>
+<td>Decode C=65536</td>
+<td>Wider memory transactions</td>
+<td><strong>+1.7%</strong> (marginal)</td>
+<td>Both kernels read identical DRAM bytes; float4 marginally reduces L1 pressure</td>
+</tr>
+<tr>
+<td>float4 loads (flash_v2)</td>
+<td>Decode C=4096</td>
+<td>Same as above</td>
+<td><strong>Negligible</strong></td>
 <td>Problem too small; GPU idle time dominates</td>
 </tr>
 </tbody>
 </table>
+<p><strong>Most impactful</strong>: Flash Attention for prefill (eliminates OOM for large S; 1.35× for small S) and multi-block Flash Decoding (47× speedup by utilizing all SMs).</p>
+<p><strong>Least impactful / negative</strong>: Larger tile (flash_v2) — consistently slower because the shared memory occupancy penalty outweighs both the barrier reduction and cache reuse benefits. This reveals that for kernels with serial dependency chains, <strong>occupancy is the primary throughput lever</strong>, not cache efficiency.</p>
 <hr>
-<h2 id="5-roofline-summary">5. Roofline Summary </h2>
-<table>
-<thead>
-<tr>
-<th>Kernel</th>
-<th>Measured AI</th>
-<th>Bottleneck</th>
-<th>% of roofline</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>prefill_naive S=4096</td>
-<td>28.2 FLOPs/B</td>
-<td>compute (near ridge)</td>
-<td>292 / 13800 = 2.1%</td>
-</tr>
-<tr>
-<td>prefill_flash S=4096</td>
-<td>2,475 FLOPs/B</td>
-<td>compute (deep)</td>
-<td>395 / 13800 = 2.9%</td>
-</tr>
-<tr>
-<td>prefill_flash_v2 S=4096</td>
-<td>2,469 FLOPs/B</td>
-<td>compute, low occupancy</td>
-<td>255 / 13800 = 1.8%</td>
-</tr>
-<tr>
-<td>prefill_flash S=65536</td>
-<td>3.70 FLOPs/B</td>
-<td><strong>HBM bandwidth</strong> (load imbalance limits to 16.2%)</td>
-<td>391 / (652.8×3.70) = 16.2%</td>
-</tr>
-<tr>
-<td>prefill_flash_v2 S=65536</td>
-<td>237 FLOPs/B</td>
-<td>compute, low occupancy</td>
-<td>258 / 13800 = 1.9%</td>
-</tr>
-<tr>
-<td>decode_naive C=65536</td>
-<td>0.50 FLOPs/B</td>
-<td>HBM, single block</td>
-<td>1.93 / (652.8×0.50) = 0.59%</td>
-</tr>
-<tr>
-<td>decode_flash C=65536</td>
-<td>2.40 FLOPs/B</td>
-<td>HBM, multi-block</td>
-<td>90 / (652.8×2.40) = 5.7%</td>
-</tr>
-<tr>
-<td>decode_flash_v2 C=65536</td>
-<td>2.40 FLOPs/B</td>
-<td>HBM, multi-block</td>
-<td>91.5 / (652.8×2.40) = 5.8%</td>
-</tr>
-</tbody>
-</table>
-<p><img src="results/roofline.png" alt="Roofline plot"></p>
-<p>All kernels remain well below theoretical peak. The primary reasons are:</p>
-<ol>
-<li><strong>Online softmax serial dependency</strong>: m → corr → es → s → o is a 5-step chain with strict data dependencies that prevents instruction-level pipelining, limiting compute throughput even when the kernel is nominally compute-bound.</li>
-<li><strong>Shared-memory-limited occupancy for flash_v2</strong>: 16 KB smem per block allows only 5 blocks/SM vs 11 for flash, halving the warp pool available to hide latency.</li>
-<li><strong>Causal load imbalance at large S</strong>: Block i processes i+1 keys; early blocks finish almost instantly while late blocks dominate runtime, preventing sustained peak DRAM utilization.</li>
-<li><strong>Decode problem size</strong>: One query vector vs a large KV cache is too small to saturate 80 SMs; even 256 blocks achieve only ~10% occupancy.</li>
-</ol>
-<hr>
-<h2 id="6-conclusion">6. Conclusion </h2>
-<p>Flash Attention is indispensable for large prefill sequences: standard attention requires 17.2 GB for S=65536, exceeding hardware limits, while flash attention operates with O(tile · D) shared memory regardless of S. At S=4096, flash attention achieves a <strong>1.35× speedup</strong> over naive by eliminating the score buffer and reducing DRAM traffic from 81.6 MB to 4.3 MB; the workload is compute-bound at 2.9% of FP32 peak, limited primarily by the online softmax serial dependency chain. At S=65536, the bottleneck shifts to HBM bandwidth (80.9% utilization, 528 GB/s measured) because K and V must be re-read for each of the 65,536 query rows, accumulating 742 GB of total DRAM traffic despite each matrix being only 16 MB. Causal load imbalance further limits sustained bandwidth utilization to 16.2% of the memory-bound roofline.</p>
-<p>Attempts to improve prefill via a larger tile (flash_v2, tile=32) revealed a fundamental tradeoff: the 2× tile doubles L2 cache reuse (DRAM reads drop 64× at S=65536) but halves occupancy due to the doubled shared-memory footprint, resulting in net slowdown. This demonstrates that for kernels with serial dependency chains, occupancy — not cache efficiency — is the primary determinant of throughput.</p>
-<p>For decode, multi-block Flash Decoding provides a <strong>47× speedup</strong> by distributing the KV cache across 256 blocks, raising DRAM throughput from 0.6% (single block) to 40% (multi-block). Both prefill and decode remain far from theoretical limits, and future improvements would require breaking the online softmax dependency chain (e.g., via warp-level software pipelining) or migrating to tensor-core-based FP16/BF16 computation.</p>
+<h2 id="9-conclusion">9. Conclusion </h2>
+<p>Flash Attention is indispensable for large prefill sequences: standard attention requires 17.2 GB for S=65536, exceeding hardware limits, while flash attention operates with O(tile·D) shared memory regardless of S. At S=4096, flash attention achieves a <strong>1.35× speedup</strong> (DRAM traffic 81.6 MB → 4.3 MB; compute-bound at 2.7% of FP32 peak). At S=65536, the bottleneck shifts to HBM bandwidth (80.9% utilization) because K/V must be re-read for each query row, accumulating 742 GB of DRAM traffic despite each matrix being only 16 MB; causal load imbalance further limits roofline efficiency to 16.2%.</p>
+<p>Attempts to improve prefill via a larger tile (flash_v2) revealed a fundamental tradeoff: 2× tile → 64× less DRAM traffic but half the occupancy due to doubled shared memory, resulting in net slowdown. This shows that for kernels with serial dependency chains, occupancy — not cache efficiency — is the primary throughput determinant.</p>
+<p>For decode, multi-block Flash Decoding provides a <strong>47× speedup</strong> by distributing the KV cache across 256 blocks and raising DRAM throughput from 0.6% to 40%. Both tasks remain far from theoretical limits; further improvements would require breaking the online softmax dependency chain (warp-level software pipelining) or tensor-core FP16/BF16 computation.</p>
 
       </div>
       

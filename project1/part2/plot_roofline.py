@@ -8,7 +8,7 @@ from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
 import os
 
-PEAK_FP32 = 13_800.0   # GFLOPS
+PEAK_FP32 = 14_900.0   # GFLOPS
 PEAK_BW   = 652.8      # GB/s
 RIDGE     = PEAK_FP32 / PEAK_BW  # ~21.1
 
@@ -67,7 +67,7 @@ ax.loglog(ai_x, np.minimum(PEAK_BW * ai_x, PEAK_FP32), "k-", lw=2.5, zorder=3)
 ax.axvline(RIDGE, color="gray", ls="--", lw=1.2, zorder=3)
 
 # annotations: peak labels on roofline
-ax.text(500, PEAK_FP32*1.15, "Peak: 13.8 TFLOPS", fontsize=9, ha="left")
+ax.text(500, PEAK_FP32*1.15, "Peak: 14.9 TFLOPS", fontsize=9, ha="left")
 ax.text(0.12, 14, f"Slope = {PEAK_BW:.0f} GB/s", fontsize=9, rotation=38, color="#333")
 ax.text(RIDGE*1.05, 0.75, f"Ridge\n≈{RIDGE:.1f}", fontsize=8, color="gray", va="bottom")
 
