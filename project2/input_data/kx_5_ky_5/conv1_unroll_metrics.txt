@@ -1,0 +1,28 @@
+==PROF== Connected to process 3506129 (/usr/eda/home2/chiyu/more_data_project1/conv)
+Device : NVIDIA TITAN V  (CC 7.0)
+
+=== Conv1-VGG  (B=16, Ny=224, Nx=224, Ni=64, Nn=64) ===
+  Running CPU reference==PROF== Profiling "conv_unroll_kernel": 0%....50%....100% - 10 passes
+ ... done.
+
+  Kernel            Time(ms)      GFLOPS     MaxAbsErr  Status
+  ──────────────────────────────────────────────────────────────
+  unroll            1131.007       52.33      1.16e-09  [PASS]
+
+==PROF== Disconnected from process 3506129
+[3506129] conv@127.0.0.1
+  conv_unroll_kernel(const float *, const float *, float *, int, int, int, int, int) (14, 224, 64)x(16, 16, 1), Context 1, Stream 7, Device 0, CC 7.0
+    Section: Command line profiler metrics
+    ------------------------------------------------------------- ----------- ------------
+    Metric Name                                                   Metric Unit Metric Value
+    ------------------------------------------------------------- ----------- ------------
+    dram__bytes_read.sum                                                Gbyte       689.28
+    dram__bytes_write.sum                                               Gbyte         1.65
+    gpu__dram_throughput.avg.pct_of_peak_sustained_elapsed                  %        93.58
+    l1tex__t_bytes_pipe_lsu_mem_global_op_ld.sum                        Gbyte       971.39
+    lts__t_bytes_equiv_l1sectormiss_pipe_lsu_mem_global_op_ld.sum       Gbyte       384.30
+    sm__throughput.avg.pct_of_peak_sustained_elapsed                        %         1.70
+    sm__warps_active.avg.pct_of_peak_sustained_active                       %        97.39
+    smsp__sass_thread_inst_executed_op_ffma_pred_on.sum                  inst  29595009024
+    ------------------------------------------------------------- ----------- ------------
+

@@ -23,6 +23,50 @@ from typing import Dict, List, Optional, Tuple
 from hw_params import HW
 
 
+def _effective_fp32_tflops() -> float:
+    """Return FP32 peak in TFLOPS using HW fields.
+
+    Prefer an explicit value, but derive from device fields when available so
+    updates in hw_params.py propagate automatically.
+    """
+    if "fp32_tflops" in HW:
+        return float(HW["fp32_tflops"])
+
+    required = ("num_sms", "cuda_cores_per_sm", "clock_ghz")
+    if all(k in HW for k in required):
+        return (
+            float(HW["num_sms"])
+            * float(HW["cuda_cores_per_sm"])
+            * 2.0
+            * float(HW["clock_ghz"])
+            / 1000.0
+        )
+
+    raise KeyError("HW must define either fp32_tflops or (num_sms, cuda_cores_per_sm, clock_ghz)")
+
+
+def _effective_dram_bw_gb_s() -> float:
+    """Return DRAM bandwidth in GB/s using HW fields.
+
+    Prefer an explicit calibrated value, but derive from memory clock and bus
+    width when available.
+    """
+    if "dram_bw_gb_s" in HW:
+        return float(HW["dram_bw_gb_s"])
+
+    required = ("memory_clock_mhz", "memory_bus_width_bits")
+    if all(k in HW for k in required):
+        mem_clk_hz = float(HW["memory_clock_mhz"]) * 1e6
+        bus_bytes = float(HW["memory_bus_width_bits"]) / 8.0
+        return 2.0 * mem_clk_hz * bus_bytes / 1e9
+
+    raise KeyError("HW must define either dram_bw_gb_s or (memory_clock_mhz, memory_bus_width_bits)")
+
+
+FP32_TFLOPS = _effective_fp32_tflops()
+DRAM_BW_GB_S = _effective_dram_bw_gb_s()
+
+
 def conv_flops(B: int, Ny: int, Nx: int, Ni: int, Nn: int, ky: int, kx: int, groups: int = 1) -> float:
     cin_per_group = Ni // groups
     return float(2 * B * Ny * Nx * Nn * ky * kx * cin_per_group)
@@ -311,19 +355,69 @@ def mape(pred: float, meas: float) -> float:
     return abs(pred - meas) / meas * 100.0
 
 
+def _hierarchical_ideal_times_ms(flops: float, dram_bytes: float, sample: Optional[Sample] = None) -> Tuple[float, float, float, float]:
+    """Return ideal times (ms) for compute, L1/SPAD, L2 and DRAM.
+
+    This is a conservative, analytic split of the total traffic into levels.
+    - compute: theoretical time to perform all FLOPs at peak FP32.
+    - dram: bytes known to originate from DRAM (measured or analytic-corrected).
+    - l2: remaining bytes assumed served from L2 (analytic - dram, clipped >=0).
+    - l1: conservative estimate of data that could be served from L1/shared.
+
+    The function uses HW constants in `HW` for bandwidths and capacities.
+    """
+    # Compute-bound time
+    t_compute_ms = flops / (FP32_TFLOPS * 1e12) * 1e3
+
+    # Estimate total algorithmic bytes touched using analytic model when a
+    # sample is provided; otherwise fallback to dram_bytes as a lower bound.
+    if sample is not None:
+        try:
+            analytic_total_bytes = _analytic_dram_bytes(sample)
+        except Exception:
+            analytic_total_bytes = dram_bytes
+    else:
+        analytic_total_bytes = dram_bytes
+
+    # DRAM bytes (provided) -> DRAM time
+    t_dram_ms = dram_bytes / (DRAM_BW_GB_S * 1e9) * 1e3
+
+    # Bytes not coming from DRAM are assumed to be served from caches (L2/L1)
+    l2_bytes = max(0.0, analytic_total_bytes - dram_bytes)
+    # Conservative L1/shared estimate: at most the total L1/SPAD capacity
+    l1_cap_total = float(HW.get("l1_spad_bytes_per_sm", 0)) * float(HW.get("num_sms", 1))
+    l1_bytes = min(analytic_total_bytes, l1_cap_total)
+
+    t_l2_ms = l2_bytes / (float(HW.get("l2_bw_gb_s", 1.0)) * 1e9) * 1e3
+    t_l1_ms = l1_bytes / (float(HW.get("l1_bw_gb_s", 1.0)) * 1e9) * 1e3
+
+    return t_compute_ms, t_l1_ms, t_l2_ms, t_dram_ms
+
+
+# Backwards-compatible wrapper for earlier call sites that expected two values.
 def _ideal_times_ms(flops: float, dram_bytes: float) -> Tuple[float, float]:
-    t_compute_ms = flops / (HW["fp32_tflops"] * 1e12) * 1e3
-    t_mem_ms = dram_bytes / (HW["dram_bw_gb_s"] * 1e9) * 1e3
-    return t_compute_ms, t_mem_ms
+    c, _, _, d = _hierarchical_ideal_times_ms(flops, dram_bytes)
+    return c, d
 
 
-def _fit_kernel_scalers(rows: List[Sample]) -> Dict[str, Dict[str, float]]:
+def _fit_kernel_scalers(
+    rows: List[Sample],
+    use_measured_dram: bool,
+    traffic_fit: Optional[Dict[str, Dict[str, float]]] = None,
+) -> Dict[str, Dict[str, float]]:
     """Fit per-kernel scale factors for compute and DRAM ideal times.
 
     Model form:
       pred_ms = max(scale_compute * ideal_compute_ms,
                     scale_mem * ideal_mem_ms)
+
+    The fitting path should match the prediction path:
+    - shortcut baseline: measured DRAM bytes
+    - primary model: corrected analytic DRAM bytes
     """
+    if not use_measured_dram and traffic_fit is None:
+        raise ValueError("traffic_fit is required when fitting with analytic DRAM")
+
     by_kernel: Dict[str, List[Sample]] = {}
     for r in rows:
         by_kernel.setdefault(r.kernel, []).append(r)
@@ -339,7 +433,13 @@ def _fit_kernel_scalers(rows: List[Sample]) -> Dict[str, Dict[str, float]]:
             for sm in search:
                 errs = []
                 for r in kres:
-                    c_ms, m_ms = _ideal_times_ms(r.flops, r.dram_bytes)
+                    if use_measured_dram:
+                        dram_bytes = r.dram_bytes
+                    else:
+                        dram_bytes = _corrected_analytic_dram_bytes(r, traffic_fit)
+                    c_ms, l1_ms, l2_ms, m_ms = _hierarchical_ideal_times_ms(r.flops, dram_bytes, sample=r)
+                    # Keep fitting the same 2-scale model (compute vs DRAM) for now;
+                    # L1/L2 are exposed in predictions for diagnostics.
                     pred = max(sc * c_ms, sm * m_ms)
                     errs.append(mape(pred, r.time_ms))
                 avg_err = mean(errs)
@@ -362,19 +462,25 @@ def predict_sample(
         if traffic_fit is None:
             raise ValueError("traffic_fit is required for analytic predictions")
         dram_bytes = _corrected_analytic_dram_bytes(sample, traffic_fit)
-    c_ms, m_ms = _ideal_times_ms(sample.flops, dram_bytes)
+
+    c_ms, l1_ms, l2_ms, m_ms = _hierarchical_ideal_times_ms(sample.flops, dram_bytes, sample=sample)
 
     p = kernel_params[sample.kernel]
     pred_ms = max(p["scale_compute"] * c_ms, p["scale_mem"] * m_ms)
 
     # Calculate TFLOPS (Tera operations per second)
     tflops = sample.flops / (pred_ms * 1e9)
+    achieved_ai = sample.flops / dram_bytes
 
     return {
         "predicted_time_ms": pred_ms,
         "tflops": tflops,
+        "tops": tflops,
+        "achieved_ai": achieved_ai,
         "ai_dram": sample.flops / dram_bytes,
         "ideal_compute_ms": c_ms,
+        "ideal_l1_ms": l1_ms,
+        "ideal_l2_ms": l2_ms,
         "ideal_mem_ms": m_ms,
         "dram_bytes_GB": dram_bytes / 1e9,
         "kernel": sample.kernel,
@@ -390,14 +496,18 @@ def write_predictions_csv(path: str, rows: List[Dict[str, float]]) -> None:
         "measured_ms",
         "predicted_ms",
         "tflops",
+        "tops",
         "mape_time_percent",
         "mape_tflops_percent",
         "mape_ai_percent",
         "dram_GB_used",
         "measured_tflops",
         "measured_ai",
+        "achieved_ai",
         "ai_dram",
         "ideal_compute_ms",
+        "ideal_l1_ms",
+        "ideal_l2_ms",
         "ideal_mem_ms",
     ]
     with open(path, "w", newline="", encoding="utf-8") as f:
@@ -422,17 +532,29 @@ def _print_table(title: str, table: List[Dict[str, float]]) -> None:
     print(f"Average - Time: {avg_time:.2f}% | TFLOPS: {avg_tflops:.2f}% | AI: {avg_ai:.2f}%")
 
 
+def _print_achieved_metrics(title: str, table: List[Dict[str, float]]) -> None:
+    print("\n" + title)
+    print("-" * len(title))
+    print(f"{'cfg':<6} {'kernel':<9} {'TOps':>10} {'AI(DRAM)':>12} {'Pred ms':>12}")
+    for r in table:
+        print(
+            f"{r['cfg']:<6} {r['kernel']:<9} {r['tflops']:>10.3f} "
+            f"{r['ai_dram']:>12.3f} {r['predicted_ms']:>12.3f}"
+        )
+
+
 def evaluate(results_dir: str) -> Dict[str, object]:
     samples = load_project1_part1_results(results_dir)
-    params = _fit_kernel_scalers(samples)
     traffic_fit = _fit_traffic_correction(samples)
+    params_shortcut = _fit_kernel_scalers(samples, use_measured_dram=True)
+    params_primary = _fit_kernel_scalers(samples, use_measured_dram=False, traffic_fit=traffic_fit)
 
     shortcut_mode_rows: List[Dict[str, float]] = []
     primary_mode_rows: List[Dict[str, float]] = []
 
     for s in sorted(samples, key=lambda x: (x.cfg, KERNELS.index(x.kernel))):
-        pred_shortcut = predict_sample(s, params, use_measured_dram=True)
-        pred_primary = predict_sample(s, params, traffic_fit=traffic_fit, use_measured_dram=False)
+        pred_shortcut = predict_sample(s, params_shortcut, use_measured_dram=True)
+        pred_primary = predict_sample(s, params_primary, traffic_fit=traffic_fit, use_measured_dram=False)
 
         # Calculate measured values from actual data
         measured_tflops = s.gflops / 1000.0  # gflops to tflops
@@ -445,14 +567,18 @@ def evaluate(results_dir: str) -> Dict[str, object]:
                 "measured_ms": s.time_ms,
                 "predicted_ms": pred_shortcut["predicted_time_ms"],
                 "tflops": pred_shortcut["tflops"],
+                "tops": pred_shortcut["tops"],
                 "mape_time_percent": mape(pred_shortcut["predicted_time_ms"], s.time_ms),
                 "mape_tflops_percent": mape(pred_shortcut["tflops"], measured_tflops),
                 "mape_ai_percent": mape(pred_shortcut["ai_dram"], measured_ai),
                 "dram_GB_used": pred_shortcut["dram_bytes_GB"],
+                "achieved_ai": pred_shortcut["achieved_ai"],
                 "ai_dram": pred_shortcut["ai_dram"],
                 "measured_tflops": measured_tflops,
                 "measured_ai": measured_ai,
                 "ideal_compute_ms": pred_shortcut["ideal_compute_ms"],
+                "ideal_l1_ms": pred_shortcut.get("ideal_l1_ms", 0.0),
+                "ideal_l2_ms": pred_shortcut.get("ideal_l2_ms", 0.0),
                 "ideal_mem_ms": pred_shortcut["ideal_mem_ms"],
             }
         )
@@ -464,21 +590,28 @@ def evaluate(results_dir: str) -> Dict[str, object]:
                 "measured_ms": s.time_ms,
                 "predicted_ms": pred_primary["predicted_time_ms"],
                 "tflops": pred_primary["tflops"],
+                "tops": pred_primary["tops"],
                 "mape_time_percent": mape(pred_primary["predicted_time_ms"], s.time_ms),
                 "mape_tflops_percent": mape(pred_primary["tflops"], measured_tflops),
                 "mape_ai_percent": mape(pred_primary["ai_dram"], measured_ai),
                 "dram_GB_used": pred_primary["dram_bytes_GB"],
+                "achieved_ai": pred_primary["achieved_ai"],
                 "ai_dram": pred_primary["ai_dram"],
                 "measured_tflops": measured_tflops,
                 "measured_ai": measured_ai,
                 "ideal_compute_ms": pred_primary["ideal_compute_ms"],
+                "ideal_l1_ms": pred_primary.get("ideal_l1_ms", 0.0),
+                "ideal_l2_ms": pred_primary.get("ideal_l2_ms", 0.0),
                 "ideal_mem_ms": pred_primary["ideal_mem_ms"],
             }
         )
 
     return {
         "samples": samples,
-        "kernel_params": params,
+        # Backward-compatible alias now points to primary-mode params.
+        "kernel_params": params_primary,
+        "kernel_params_shortcut": params_shortcut,
+        "kernel_params_primary": params_primary,
         "traffic_fit": traffic_fit,
         "shortcut_mode_rows": shortcut_mode_rows,
         "primary_mode_rows": primary_mode_rows,
@@ -515,8 +648,8 @@ def predict_conv_runtime(
     if results_dir is None:
         results_dir = default_results_dir()
     fit = evaluate(results_dir)
-    kernel_params = fit["kernel_params"]
     traffic_fit = fit["traffic_fit"]
+    kernel_params = fit["kernel_params_shortcut"] if use_measured_dram else fit["kernel_params_primary"]
 
     sample = Sample(
         cfg="custom",
@@ -555,9 +688,17 @@ if __name__ == "__main__":
     results_dir = default_results_dir()
     out = evaluate(results_dir)
 
-    print("Calibrated kernel scale factors:")
+    print("Calibrated kernel scale factors (primary analytic path):")
     for k in KERNELS:
-        p = out["kernel_params"][k]
+        p = out["kernel_params_primary"][k]
+        print(
+            f"  {k:<9} scale_compute={p['scale_compute']:<6.2f} "
+            f"scale_mem={p['scale_mem']:<6.2f} fit_MAPE={p['mape']:.2f}%"
+        )
+
+    print("\nCalibrated kernel scale factors (shortcut measured-DRAM path):")
+    for k in KERNELS:
+        p = out["kernel_params_shortcut"][k]
         print(
             f"  {k:<9} scale_compute={p['scale_compute']:<6.2f} "
             f"scale_mem={p['scale_mem']:<6.2f} fit_MAPE={p['mape']:.2f}%"
@@ -566,6 +707,7 @@ if __name__ == "__main__":
     print("\nPrimary model: analytic DRAM bytes with a small fitted correction")
     _print_table("Primary model predictions", out["primary_mode_rows"])
     _print_table("Shortcut baseline using measured DRAM bytes", out["shortcut_mode_rows"])
+    _print_achieved_metrics("Primary model achieved throughput and intensity", out["primary_mode_rows"])
 
     out_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "results")
     write_predictions_csv(os.path.join(out_dir, "predictions_primary_model.csv"), out["primary_mode_rows"])

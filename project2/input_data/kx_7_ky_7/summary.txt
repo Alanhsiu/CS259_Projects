@@ -1,0 +1,26 @@
+Device : NVIDIA TITAN V  (CC 7.0)
+
+=== Conv1-VGG  (B=16, Ny=224, Nx=224, Ni=64, Nn=64) ===
+  Running CPU reference ... done.
+
+  Kernel            Time(ms)      GFLOPS     MaxAbsErr  Status
+  ──────────────────────────────────────────────────────────────
+  naive              686.973       86.16      1.16e-09  [PASS]
+  smem_w             664.838       89.03      1.16e-09  [PASS]
+  unroll            1130.035       52.38      1.16e-09  [PASS]
+  smem_wi             57.055     1037.42      1.66e-09  [PASS]
+  regblock           396.305      149.35      1.16e-09  [PASS]
+  warp               170.985      346.17      1.66e-09  [PASS]
+
+=== Conv2-VGG  (B=16, Ny=14, Nx=14, Ni=512, Nn=512) ===
+  Running CPU reference ... done.
+
+  Kernel            Time(ms)      GFLOPS     MaxAbsErr  Status
+  ──────────────────────────────────────────────────────────────
+  naive               84.221      175.70      6.28e-10  [PASS]
+  smem_w              99.250      149.09      6.28e-10  [PASS]
+  unroll              86.844      170.39      6.28e-10  [PASS]
+  smem_wi             12.519     1181.96      1.75e-09  [PASS]
+  regblock            23.432      631.50      6.28e-10  [PASS]
+  warp                39.253      376.98      6.98e-10  [PASS]
+

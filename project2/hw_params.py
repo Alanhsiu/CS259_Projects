@@ -8,6 +8,12 @@ Values grounded in:
 """
 
 HW = {
+  # ── Device Identity (from deviceQuery) ──────────────────────────────────
+  "gpu_name":             "NVIDIA TITAN V",
+  "cuda_cc":              "7.0",
+  "cuda_driver_version":  "12.4",
+  "cuda_runtime_version": "12.4",
+
     # ── Compute ──────────────────────────────────────────────────────────────
     "num_sms":              80,
     "cuda_cores_per_sm":    64,       # 4 warp schedulers × 16 FP32 pipes
@@ -16,6 +22,9 @@ HW = {
     "fp32_flops_per_sm":    14.9e12 / 80,
 
     # ── Memory Hierarchy ─────────────────────────────────────────────────────
+    "global_mem_bytes":     12_635_406_336,  # exact from deviceQuery
+    "memory_clock_mhz":     850,
+    "memory_bus_width_bits":3072,
     # DRAM: confirmed from ncu (see Mini-proj 1 cross-check)
     "dram_bw_gb_s":         652.8,    # HBM2 peak bandwidth
     # L2: estimated from Volta whitepaper (slice bandwidth × 8 slices)
@@ -29,7 +38,7 @@ HW = {
     "l1_latency_cyc":       28,
 
     # ── Capacities ───────────────────────────────────────────────────────────
-    "l2_bytes":             4.5e6,    # 4.5 MB total L2
+    "l2_bytes":             4_718_592,  # exact from deviceQuery (4.5 MiB)
     "l1_spad_bytes_per_sm": 96 * 1024,  # 96 KB unified L1+shared per SM (configurable)
     "max_shared_per_block": 48 * 1024,  # default max per block (can raise to 96 KB)
     "reg_file_per_sm":      256 * 1024, # 256 KB register file per SM
