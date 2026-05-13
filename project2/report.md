@@ -520,6 +520,27 @@ Example placements:
 
 ---
 
+## Figures
+
+### Error vs Problem Size
+
+**Figure:** Error vs Problem Size — Model vs Measured runtime error across problem sizes (Ny = Nx ∈ {16,32,56,112,224}). The plot shows model error (MAPE) compared to the roofline baseline and highlights that the mechanistic model maintains low error as problem size grows.
+
+![](results_default/error_vs_problem_size.png)
+
+### Error vs Tile Size
+
+**Figure:** Error vs Tile Size — Tile sweep for the `smem_wi` kernel (smwi_tile_ni ∈ {2,4,8,16,32}). This figure illustrates the U-shaped performance curve: poor coalescing at small tile sizes and occupancy limits at large tile sizes; the model captures the sweet spot.
+
+![](results_default/error_vs_tile_size.png)
+
+### Predicted Roofline (Model)
+
+**Figure:** Roofline predicted by the mechanistic model — AI vs predicted GFLOPS. This roofline uses model-predicted arithmetic intensity and predicted throughput (not measured), showing how kernels move relative to the compute/memory ridge under the model.
+
+![](results_default/roofline_predicted.png)
+---
+
 ## Appendix C: Reproduction Instructions
 
 ```bash
