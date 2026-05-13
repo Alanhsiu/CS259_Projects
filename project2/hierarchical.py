@@ -358,19 +358,64 @@ def mape(pred: float, meas: float) -> float:
 def _hierarchical_ideal_times_ms(flops: float, dram_bytes: float, sample: Optional[Sample] = None) -> Tuple[float, float, float, float]:
     """Return ideal times (ms) for compute, L1/SPAD, L2 and DRAM.
 
-    This is a conservative, analytic split of the total traffic into levels.
-    - compute: theoretical time to perform all FLOPs at peak FP32.
-    - dram: bytes known to originate from DRAM (measured or analytic-corrected).
-    - l2: remaining bytes assumed served from L2 (analytic - dram, clipped >=0).
-    - l1: conservative estimate of data that could be served from L1/shared.
+    The four levels correspond to:
+    - compute: theoretical time to execute all FLOPs at peak FP32 TFLOPS.
+    - l1/spad: time to serve data that lives in on-chip scratchpad/L1 cache.
+    - l2: time to serve data that is reused from L2 (fits in L2 between accesses).
+    - dram: time to transfer bytes that must come from off-chip HBM.
 
-    The function uses HW constants in `HW` for bandwidths and capacities.
+    L2 traffic = analytic_minimum_traffic - actual_dram_traffic when
+    analytic < dram (correction > 1 means extra cache-line waste goes to DRAM;
+    correction < 1 means some traffic is served from L2, not DRAM).
+
+    For kernels where the correction inflates DRAM above the analytic minimum
+    (cache-line waste), any tensor that fits in L2 is still being re-served
+    from L2 across tile iterations — we estimate that separately.
     """
     # Compute-bound time
     t_compute_ms = flops / (FP32_TFLOPS * 1e12) * 1e3
 
-    # Estimate total algorithmic bytes touched using analytic model when a
-    # sample is provided; otherwise fallback to dram_bytes as a lower bound.
+    # DRAM time (off-chip bandwidth)
+    t_dram_ms = dram_bytes / (DRAM_BW_GB_S * 1e9) * 1e3
+
+    # L2 traffic estimation
+    # Case A: correction < 1 → corrected DRAM < analytic minimum → some traffic served from L2
+    # Case B: correction > 1 → corrected DRAM > analytic minimum → cache-line waste; tensors
+    #         small enough to fit in L2 are still re-served from L2 across tile iterations.
+    l2_bw = float(HW.get("l2_bw_gb_s", 1.0)) * 1e9
+    l1_bw = float(HW.get("l1_bw_gb_s", 1.0)) * 1e9
+    l2_cap = float(HW.get("l2_bytes", 0))
+
+    if sample is not None:
+        try:
+            analytic_total_bytes = _analytic_dram_bytes(sample)
+        except Exception:
+            analytic_total_bytes = dram_bytes
+
+        # Case A: analytic < dram (correction reduced traffic → L2 serves the remainder)
+        l2_from_reuse = max(0.0, analytic_total_bytes - dram_bytes)
+
+        # Case B: estimate L2 traffic from tensors that fit in L2 cache
+        # These tensors are loaded from DRAM once per kernel launch, then served
+        # from L2 on subsequent accesses within the same launch.
+        syn_b, inp_b, out_b = conv_tensor_bytes(
+            sample.B, sample.Ny, sample.Nx, sample.Ni, sample.Nn,
+            sample.ky, sample.kx, sample.groups,
+        )
+        # Weight tensor: if it fits in L2, subsequent blocks read it from L2, not DRAM.
+        # Extra L2 traffic ≈ total analytic weight accesses minus the one initial DRAM load.
+        l2_from_weight_reuse = 0.0
+        if syn_b < l2_cap:
+            # Approximate: weight re-reads from L2 = weight_analytic_total - syn_b (initial load)
+            total_weight_analytic = analytic_total_bytes - inp_b - out_b
+            l2_from_weight_reuse = max(0.0, total_weight_analytic - syn_b)
+
+        l2_bytes = max(l2_from_reuse, l2_from_weight_reuse)
+    else:
+        l2_bytes = 0.0
+
+    # L1/SPAD: data that stays on-chip in shared memory or L1 within a block.
+    # Conservatively cap at total L1+SPAD capacity across all SMs.
     if sample is not None:
         try:
             analytic_total_bytes = _analytic_dram_bytes(sample)
@@ -378,18 +423,11 @@ def _hierarchical_ideal_times_ms(flops: float, dram_bytes: float, sample: Option
             analytic_total_bytes = dram_bytes
     else:
         analytic_total_bytes = dram_bytes
-
-    # DRAM bytes (provided) -> DRAM time
-    t_dram_ms = dram_bytes / (DRAM_BW_GB_S * 1e9) * 1e3
-
-    # Bytes not coming from DRAM are assumed to be served from caches (L2/L1)
-    l2_bytes = max(0.0, analytic_total_bytes - dram_bytes)
-    # Conservative L1/shared estimate: at most the total L1/SPAD capacity
     l1_cap_total = float(HW.get("l1_spad_bytes_per_sm", 0)) * float(HW.get("num_sms", 1))
     l1_bytes = min(analytic_total_bytes, l1_cap_total)
 
-    t_l2_ms = l2_bytes / (float(HW.get("l2_bw_gb_s", 1.0)) * 1e9) * 1e3
-    t_l1_ms = l1_bytes / (float(HW.get("l1_bw_gb_s", 1.0)) * 1e9) * 1e3
+    t_l2_ms = l2_bytes / l2_bw * 1e3
+    t_l1_ms = l1_bytes / l1_bw * 1e3
 
     return t_compute_ms, t_l1_ms, t_l2_ms, t_dram_ms
 
@@ -438,9 +476,9 @@ def _fit_kernel_scalers(
                     else:
                         dram_bytes = _corrected_analytic_dram_bytes(r, traffic_fit)
                     c_ms, l1_ms, l2_ms, m_ms = _hierarchical_ideal_times_ms(r.flops, dram_bytes, sample=r)
-                    # Keep fitting the same 2-scale model (compute vs DRAM) for now;
-                    # L1/L2 are exposed in predictions for diagnostics.
-                    pred = max(sc * c_ms, sm * m_ms)
+                    # True hierarchical bottleneck: compute, L2, and DRAM compete.
+                    # L2 is unscaled (scale_l2 = 1.0): assume L2 achieves rated BW.
+                    pred = max(sc * c_ms, l2_ms, sm * m_ms)
                     errs.append(mape(pred, r.time_ms))
                 avg_err = mean(errs)
                 if avg_err < best["mape"]:
@@ -466,9 +504,19 @@ def predict_sample(
     c_ms, l1_ms, l2_ms, m_ms = _hierarchical_ideal_times_ms(sample.flops, dram_bytes, sample=sample)
 
     p = kernel_params[sample.kernel]
-    pred_ms = max(p["scale_compute"] * c_ms, p["scale_mem"] * m_ms)
+    sc_t = p["scale_compute"] * c_ms
+    sm_t = p["scale_mem"] * m_ms
+    # True hierarchical bottleneck: L2 is included at rated bandwidth (scale_l2 = 1.0).
+    pred_ms = max(sc_t, l2_ms, sm_t)
 
-    # Calculate TFLOPS (Tera operations per second)
+    # Identify which level is the bottleneck
+    if pred_ms == sc_t:
+        bottleneck = "compute"
+    elif pred_ms == l2_ms:
+        bottleneck = "l2"
+    else:
+        bottleneck = "memory"
+
     tflops = sample.flops / (pred_ms * 1e9)
     achieved_ai = sample.flops / dram_bytes
 
@@ -483,6 +531,7 @@ def predict_sample(
         "ideal_l2_ms": l2_ms,
         "ideal_mem_ms": m_ms,
         "dram_bytes_GB": dram_bytes / 1e9,
+        "bottleneck": bottleneck,
         "kernel": sample.kernel,
         "cfg": sample.cfg,
     }
@@ -682,6 +731,173 @@ def predict_conv_runtime(
 def default_results_dir() -> str:
     here = os.path.dirname(os.path.abspath(__file__))
     return os.path.abspath(os.path.join(here, "..", "project1", "part1", "results"))
+
+
+# ── Occupancy and coalescing models for K3 smem_wi ───────────────────────────
+
+def compute_smwi_occupancy(
+    smwi_tile_ni: int,
+    ky: int = 3,
+    kx: int = 3,
+    tile_x: int = 16,
+    tile_y: int = 16,
+) -> dict:
+    """Compute SM occupancy for K3 smem_wi as a function of smwi_tile_ni.
+
+    Shared memory per block = smwi_tile_ni * (ky*kx + inp_tile_y*inp_tile_x) * 4 bytes.
+    Occupancy is limited by whichever resource runs out first: shared memory or threads.
+    """
+    inp_tile_y = tile_y + ky - 1
+    inp_tile_x = tile_x + kx - 1
+    smem_per_block = smwi_tile_ni * (ky * kx + inp_tile_y * inp_tile_x) * 4
+
+    l1_bytes = int(HW["l1_spad_bytes_per_sm"])          # 96 KB unified
+    max_blocks_smem = l1_bytes // smem_per_block
+    max_blocks_threads = int(HW["max_threads_per_sm"]) // (tile_x * tile_y)  # 8
+    max_blocks_hw = int(HW["max_blocks_per_sm"])          # 32
+
+    blocks_per_sm = min(max_blocks_smem, max_blocks_threads, max_blocks_hw)
+
+    return {
+        "smem_bytes": smem_per_block,
+        "max_blocks_smem": max_blocks_smem,
+        "max_blocks_threads": max_blocks_threads,
+        "blocks_per_sm": max(blocks_per_sm, 1),
+        "occupancy": max(blocks_per_sm, 1) / max_blocks_threads,
+        "bottleneck": "smem" if max_blocks_smem < max_blocks_threads else "threads",
+    }
+
+
+def smwi_coalesce_efficiency(smwi_tile_ni: int) -> float:
+    """Cache-line utilization for K3 smem_wi input loads.
+
+    A 32-thread warp splits into (32 / smwi_tile_ni) sub-groups, each loading
+    smwi_tile_ni consecutive floats from the same (ly, lx) position.
+    A 128-byte cache line holds 32 floats; each sub-group uses
+    min(smwi_tile_ni, 32) / 32 of the line.
+
+    A dampened exponent (0.6) is applied by the caller to account for partial
+    L1-cache reuse: nearby warps often share cache lines, partially recovering
+    the wasted bandwidth.
+    """
+    return min(smwi_tile_ni, 32) / 32.0
+
+
+def predict_smwi_tile_sweep(
+    B: int,
+    Ny: int,
+    Nx: int,
+    Ni: int,
+    Nn: int,
+    tile_ni_list: list,
+    results_dir: Optional[str] = None,
+    ref_tile_ni: int = 8,
+    coalesce_exp: float = 0.6,
+) -> list:
+    """Predict K3 smem_wi runtime for a sweep of smwi_tile_ni values.
+
+    Mechanistic corrections applied on top of the fitted base model:
+      1. Coalescing: fewer bytes per cache line → (ref_eff/cur_eff)^coalesce_exp × t_mem
+      2. Occupancy:  fewer blocks/SM  → sqrt(ref_occ/cur_occ) × t_compute
+         (sqrt dampening: memory-BW-saturated kernels hide occupancy effects)
+    """
+    if results_dir is None:
+        results_dir = default_results_dir()
+
+    fit = evaluate(results_dir)
+    params = fit["kernel_params_primary"]["smem_wi"]
+    traffic_fit = fit["traffic_fit"]
+    scale_compute = params["scale_compute"]
+    scale_mem = params["scale_mem"]
+
+    # Reference sample at ref_tile_ni (used to get base ideal times)
+    ref_sample = Sample(
+        cfg="ref", kernel="smem_wi",
+        B=B, Ny=Ny, Nx=Nx, Ni=Ni, Nn=Nn,
+        ky=3, kx=3, groups=1,
+        time_ms=0.0, gflops=0.0,
+        dram_read_bytes=0.0, dram_write_bytes=0.0,
+    )
+    ref_dram = _corrected_analytic_dram_bytes(ref_sample, traffic_fit)
+    flops = conv_flops(B, Ny, Nx, Ni, Nn, 3, 3)
+
+    t_compute_ideal = flops / (FP32_TFLOPS * 1e12) * 1e3   # ms, constant
+    t_mem_ideal_ref = ref_dram / (DRAM_BW_GB_S * 1e9) * 1e3  # ms at ref tni
+
+    # Reference occupancy and coalescing
+    ref_occ_info = compute_smwi_occupancy(ref_tile_ni)
+    ref_occ = ref_occ_info["occupancy"]
+    ref_coalesce = smwi_coalesce_efficiency(ref_tile_ni)
+
+    results = []
+    for tni in tile_ni_list:
+        occ_info = compute_smwi_occupancy(tni)
+        cur_occ = occ_info["occupancy"]
+        cur_coalesce = smwi_coalesce_efficiency(tni)
+
+        # Memory term: coalescing correction (dampened by coalesce_exp)
+        coalesce_factor = (ref_coalesce / cur_coalesce) ** coalesce_exp
+        t_mem_new = t_mem_ideal_ref * coalesce_factor
+
+        # Compute term: occupancy correction (sqrt dampening for BW-bound kernels)
+        occ_factor = math.sqrt(ref_occ / cur_occ)
+        t_compute_new = t_compute_ideal * occ_factor
+
+        predicted_ms = max(scale_compute * t_compute_new, scale_mem * t_mem_new)
+
+        results.append({
+            "tile_ni": tni,
+            "predicted_ms": predicted_ms,
+            "occupancy": cur_occ,
+            "blocks_per_sm": occ_info["blocks_per_sm"],
+            "coalesce_eff": cur_coalesce,
+            "coalesce_factor": coalesce_factor,
+            "occ_factor": occ_factor,
+            "bottleneck": "compute" if scale_compute * t_compute_new >= scale_mem * t_mem_new else "memory",
+        })
+
+    return results
+
+
+def predict_smwi_problem_sweep(
+    Ny_list: list,
+    B: int = 16,
+    Ni: int = 64,
+    Nn: int = 64,
+    results_dir: Optional[str] = None,
+) -> list:
+    """Predict K3 smem_wi runtime for varying spatial problem sizes (Ny = Nx).
+
+    Uses the primary analytic model (no measured DRAM needed), so it generalises
+    to arbitrary spatial dimensions not seen during fitting.
+    """
+    if results_dir is None:
+        results_dir = default_results_dir()
+
+    fit = evaluate(results_dir)
+    params = fit["kernel_params_primary"]
+    traffic_fit = fit["traffic_fit"]
+
+    results = []
+    for Ny in Ny_list:
+        Nx = Ny
+        sample = Sample(
+            cfg="sweep", kernel="smem_wi",
+            B=B, Ny=Ny, Nx=Nx, Ni=Ni, Nn=Nn,
+            ky=3, kx=3, groups=1,
+            time_ms=0.0, gflops=0.0,
+            dram_read_bytes=0.0, dram_write_bytes=0.0,
+        )
+        pred = predict_sample(sample, params, traffic_fit=traffic_fit, use_measured_dram=False)
+        results.append({
+            "Ny": Ny,
+            "predicted_ms": pred["predicted_time_ms"],
+            "tflops": pred["tflops"],
+            "ai_dram": pred["ai_dram"],
+            "bottleneck": pred.get("bottleneck", "unknown"),
+        })
+
+    return results
 
 
 if __name__ == "__main__":

@@ -1,0 +1,6 @@
+config,Ny,Nx,Ni,Nn,B,kernel,time_ms
+conv1,16,16,64,64,16,smem_wi,0.253
+conv1,32,32,64,64,16,smem_wi,0.892
+conv1,56,56,64,64,16,smem_wi,3.157
+conv1,112,112,64,64,16,smem_wi,10.815
+conv1,224,224,64,64,16,smem_wi,57.071

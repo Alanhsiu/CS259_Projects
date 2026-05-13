@@ -27,6 +27,8 @@ from hierarchical import (
     load_project1_part1_results,
     mape,
     predict_sample,
+    predict_smwi_tile_sweep,
+    predict_smwi_problem_sweep,
 )
 
 
@@ -240,6 +242,269 @@ def _remap_samples(samples, ky: int, kx: int):
     return [replace(s, ky=ky, kx=kx) for s in samples]
 
 
+def plot_error_vs_tile_size(measured_csv_path: str, out_dir: str, results_dir: str = None):
+    """Plot measured vs model vs roofline for tile size sweep with per-point MAPE.
+
+    Top panel: absolute runtimes.
+    Bottom panel: MAPE bars (hierarchical model vs roofline baseline).
+    """
+    import csv
+    from roofline import roofline as roofline_predict
+
+    if not os.path.exists(measured_csv_path):
+        print(f"Warning: {measured_csv_path} not found, skipping tile size plot.")
+        return
+
+    tile_nis, measured_times = [], []
+    try:
+        with open(measured_csv_path, "r") as f:
+            for row in csv.DictReader(f):
+                tile_nis.append(int(row["smwi_tile_ni"]))
+                measured_times.append(float(row["time_ms"]))
+    except Exception as e:
+        print(f"Error reading {measured_csv_path}: {e}")
+        return
+
+    if not tile_nis:
+        return
+
+    pairs = sorted(zip(tile_nis, measured_times))
+    tile_nis = [x[0] for x in pairs]
+    measured_times = [x[1] for x in pairs]
+
+    # Hierarchical model predictions
+    preds = predict_smwi_tile_sweep(
+        B=16, Ny=224, Nx=224, Ni=64, Nn=64,
+        tile_ni_list=tile_nis,
+        results_dir=results_dir,
+    )
+    predicted_times = [p["predicted_ms"] for p in preds]
+
+    # Roofline baseline (constant — doesn't depend on tile_ni)
+    rf = roofline_predict(16, 224, 224, 64, 64)
+    roofline_time = rf["predicted_time_ms"]
+
+    model_mapes = [abs(p - m) / m * 100 for p, m in zip(predicted_times, measured_times)]
+    roof_mapes  = [abs(roofline_time - m) / m * 100 for m in measured_times]
+
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 9))
+
+    # ── top: runtime ───────────────────────────────────────────────────────
+    ax1.plot(tile_nis, measured_times,  "o-",  color="#c03820", lw=2, ms=8, label="Measured")
+    ax1.plot(tile_nis, predicted_times, "s--", color="#1a3880", lw=2, ms=8, label="Hierarchical model")
+    ax1.axhline(roofline_time, color="#1a6870", lw=1.5, ls=":",
+                label=f"Roofline ({roofline_time:.1f} ms)")
+    ax1.set_ylabel("Runtime (ms)", fontsize=11)
+    ax1.set_title("K3 smem_wi: Runtime vs Tile Size  |  Conv1 224×224 (Ni=Nn=64)", fontsize=12)
+    ax1.set_xticks(tile_nis)
+    ax1.grid(True, alpha=0.3)
+    ax1.legend(fontsize=10)
+
+    # ── bottom: MAPE bars ──────────────────────────────────────────────────
+    x = np.arange(len(tile_nis))
+    w = 0.35
+    ax2.bar(x - w / 2, model_mapes, width=w, color="#1a3880", label="Hierarchical model")
+    ax2.bar(x + w / 2, roof_mapes,  width=w, color="#aaaaaa",  label="Roofline baseline")
+    for i, (m, r) in enumerate(zip(model_mapes, roof_mapes)):
+        ax2.text(i - w / 2, m + 0.3, f"{m:.1f}%", ha="center", fontsize=8)
+        ax2.text(i + w / 2, r + 0.3, f"{r:.1f}%", ha="center", fontsize=8)
+    ax2.set_xlabel("SMWI_TILE_NI (tile size)", fontsize=11)
+    ax2.set_ylabel("MAPE (%)", fontsize=11)
+    ax2.set_title("Prediction Error vs Tile Size", fontsize=12)
+    ax2.set_xticks(x)
+    ax2.set_xticklabels(tile_nis)
+    ax2.grid(axis="y", alpha=0.3)
+    ax2.legend(fontsize=10)
+
+    avg_m = sum(model_mapes) / len(model_mapes)
+    avg_r = sum(roof_mapes) / len(roof_mapes)
+    print(f"  Tile sweep — model avg MAPE: {avg_m:.1f}%  roofline avg MAPE: {avg_r:.1f}%")
+
+    out_path = os.path.join(out_dir, "error_vs_tile_size.png")
+    plt.tight_layout()
+    plt.savefig(out_path, dpi=150, bbox_inches="tight")
+    plt.close()
+    print(f"Saved -> {out_path}")
+
+
+def plot_error_vs_problem_size(measured_csv_path: str, out_dir: str, results_dir: str = None):
+    """Plot measured vs model vs roofline for problem size sweep with per-point MAPE.
+
+    Top panel: absolute runtimes.
+    Bottom panel: MAPE bars comparing hierarchical model to roofline baseline.
+    """
+    import csv
+    from roofline import roofline as roofline_predict
+
+    if not os.path.exists(measured_csv_path):
+        print(f"Warning: {measured_csv_path} not found, skipping problem size plot.")
+        return
+
+    problem_sizes, measured_times = [], []
+    try:
+        with open(measured_csv_path, "r") as f:
+            for row in csv.DictReader(f):
+                problem_sizes.append(int(row["Ny"]))
+                measured_times.append(float(row["time_ms"]))
+    except Exception as e:
+        print(f"Error reading {measured_csv_path}: {e}")
+        return
+
+    if not problem_sizes:
+        return
+
+    pairs = sorted(zip(problem_sizes, measured_times))
+    problem_sizes = [x[0] for x in pairs]
+    measured_times = [x[1] for x in pairs]
+
+    # Hierarchical model predictions for each (Ny, Nx) = (Ny, Ny)
+    preds = predict_smwi_problem_sweep(
+        Ny_list=problem_sizes, B=16, Ni=64, Nn=64,
+        results_dir=results_dir,
+    )
+    predicted_times = [p["predicted_ms"] for p in preds]
+
+    # Roofline baseline (scales with Ny^2 — proportional to FLOPs/bytes)
+    roofline_times = [roofline_predict(16, Ny, Ny, 64, 64)["predicted_time_ms"]
+                      for Ny in problem_sizes]
+
+    model_mapes = [abs(p - m) / m * 100 for p, m in zip(predicted_times, measured_times)]
+    roof_mapes  = [abs(r - m) / m * 100 for r, m in zip(roofline_times,  measured_times)]
+
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 9))
+
+    # ── top: runtime ───────────────────────────────────────────────────────
+    ax1.plot(problem_sizes, measured_times,  "o-",  color="#1a3880", lw=2, ms=8, label="Measured")
+    ax1.plot(problem_sizes, predicted_times, "s--", color="#c03820", lw=2, ms=8, label="Hierarchical model")
+    ax1.plot(problem_sizes, roofline_times,  "^:",  color="#1a6870", lw=1.5, ms=8, label="Roofline baseline")
+    ax1.set_ylabel("Runtime (ms)", fontsize=11)
+    ax1.set_title("K3 smem_wi: Runtime vs Problem Size  |  Conv1 (Ni=Nn=64, B=16)", fontsize=12)
+    ax1.set_yscale("log")
+    ax1.grid(True, which="both", alpha=0.3)
+    ax1.legend(fontsize=10)
+
+    # ── bottom: MAPE bars ──────────────────────────────────────────────────
+    x = np.arange(len(problem_sizes))
+    w = 0.35
+    ax2.bar(x - w / 2, model_mapes, width=w, color="#c03820", label="Hierarchical model")
+    ax2.bar(x + w / 2, roof_mapes,  width=w, color="#aaaaaa",  label="Roofline baseline")
+    for i, (m, r) in enumerate(zip(model_mapes, roof_mapes)):
+        ax2.text(i - w / 2, m + 0.3, f"{m:.1f}%", ha="center", fontsize=8)
+        ax2.text(i + w / 2, r + 0.3, f"{r:.1f}%", ha="center", fontsize=8)
+    ax2.set_xlabel("Problem Size (Ny = Nx)", fontsize=11)
+    ax2.set_ylabel("MAPE (%)", fontsize=11)
+    ax2.set_title("Prediction Error vs Problem Size", fontsize=12)
+    ax2.set_xticks(x)
+    ax2.set_xticklabels(problem_sizes)
+    ax2.grid(axis="y", alpha=0.3)
+    ax2.legend(fontsize=10)
+
+    avg_m = sum(model_mapes) / len(model_mapes)
+    avg_r = sum(roof_mapes) / len(roof_mapes)
+    print(f"  Problem sweep — model avg MAPE: {avg_m:.1f}%  roofline avg MAPE: {avg_r:.1f}%")
+
+    out_path = os.path.join(out_dir, "error_vs_problem_size.png")
+    plt.tight_layout()
+    plt.savefig(out_path, dpi=150, bbox_inches="tight")
+    plt.close()
+    print(f"Saved -> {out_path}")
+
+
+
+def plot_sensitivity_analysis(out_dir: str, results_dir: str = None):
+    """Sensitivity analysis: how much does predicted time change when HW params vary?
+
+    For each parameter (DRAM BW, FP32 TFLOPS, L2 size), we sweep a multiplier
+    range and recompute the predicted time for smem_wi at Conv1 and Conv2.
+
+    This answers: "Which hardware parameters should a future GPU change to most
+    improve performance on this kernel?"
+    """
+    from hierarchical import (
+        HW, FP32_TFLOPS, DRAM_BW_GB_S, evaluate, _corrected_analytic_dram_bytes,
+        conv_flops, Sample,
+    )
+
+    if results_dir is None:
+        results_dir = default_results_dir()
+
+    fit = evaluate(results_dir)
+    params = fit["kernel_params_primary"]["smem_wi"]
+    traffic_fit = fit["traffic_fit"]
+    sc = params["scale_compute"]
+    sm = params["scale_mem"]
+
+    configs = [
+        ("Conv1\n224×224, Ni=Nn=64", 16, 224, 224, 64, 64),
+        ("Conv2\n14×14, Ni=Nn=512",  16,  14,  14, 512, 512),
+    ]
+
+    multipliers = np.linspace(0.25, 4.0, 60)
+    sweep_params = [
+        ("DRAM Bandwidth",     "dram_bw_gb_s",  "×  base = 652.8 GB/s",  "#c03820"),
+        ("FP32 Peak TFLOPS",   "fp32_tflops",   "×  base = 14.9 TFLOPS", "#1a3880"),
+        ("L2 Cache Size",      "l2_bytes",      "×  base = 4.5 MB",       "#1a6870"),
+    ]
+
+    for param_name, param_key, x_label, color in sweep_params:
+        fig, axes = plt.subplots(1, len(configs), figsize=(13, 5), sharey=False)
+        fig.suptitle(f"Sensitivity: {param_name}  |  K3 smem_wi", fontsize=13)
+
+        for ax, (cfg_name, B, Ny, Nx, Ni, Nn) in zip(axes, configs):
+            sample = Sample(
+                cfg="sens", kernel="smem_wi", B=B, Ny=Ny, Nx=Nx, Ni=Ni, Nn=Nn,
+                ky=3, kx=3, groups=1, time_ms=0.0, gflops=0.0,
+                dram_read_bytes=0.0, dram_write_bytes=0.0,
+            )
+            base_dram = _corrected_analytic_dram_bytes(sample, traffic_fit)
+            base_flops = conv_flops(B, Ny, Nx, Ni, Nn, 3, 3)
+            base_bw = DRAM_BW_GB_S * 1e9
+            base_fp32 = FP32_TFLOPS * 1e12
+            base_l2 = float(HW["l2_bytes"])
+
+            syn_b = 3 * 3 * Nn * Ni * 4
+
+            times = []
+            for mult in multipliers:
+                if param_key == "dram_bw_gb_s":
+                    eff_bw = base_bw * mult
+                    t_comp = base_flops / base_fp32 * 1e3
+                    t_mem  = base_dram / eff_bw * 1e3
+                elif param_key == "fp32_tflops":
+                    t_comp = base_flops / (base_fp32 * mult) * 1e3
+                    t_mem  = base_dram / base_bw * 1e3
+                else:  # l2_bytes
+                    eff_l2 = base_l2 * mult
+                    # Smaller L2 → weights evicted more → more DRAM traffic
+                    if syn_b < eff_l2:
+                        dram = base_dram  # weights cache → no extra traffic
+                    else:
+                        dram_extra = syn_b - base_dram * 0.01  # proxy for extra weight fetch
+                        dram = base_dram + max(0, dram_extra)
+                    t_comp = base_flops / base_fp32 * 1e3
+                    t_mem  = dram / base_bw * 1e3
+                times.append(max(sc * t_comp, sm * t_mem))
+
+            baseline_time = times[len(multipliers) // 4]  # at mult=1.0 approx
+            # Find the index closest to mult=1.0
+            idx1 = np.argmin(np.abs(multipliers - 1.0))
+            baseline_time = times[idx1]
+
+            ax.plot(multipliers, times, color=color, lw=2.5)
+            ax.axvline(1.0, color="#999", lw=1, ls="--")
+            ax.scatter([1.0], [baseline_time], color=color, s=80, zorder=5)
+            ax.set_xlabel(f"Multiplier  ({x_label})", fontsize=10)
+            ax.set_ylabel("Predicted time (ms)", fontsize=10)
+            ax.set_title(cfg_name, fontsize=11)
+            ax.grid(True, alpha=0.2)
+
+        fname = f"sensitivity_{param_key}.png"
+        plt.tight_layout()
+        plt.savefig(os.path.join(out_dir, fname), dpi=150, bbox_inches="tight")
+        plt.close()
+        print(f"Saved -> {os.path.join(out_dir, fname)}")
+
+
 def evaluate_for_validation(results_dir: str, ky: int, kx: int):
     samples = _remap_samples(load_project1_part1_results(results_dir), ky=ky, kx=kx)
     traffic_fit = _fit_traffic_correction(samples)
@@ -311,6 +576,18 @@ def main():
     plot_model_vs_measured(primary_rows, out_dir)
     plot_mape_by_kernel(primary_rows, out_dir)
     plot_roofline_predicted(primary_rows, out_dir)
+    
+    # Plot sweep results if available
+    measured_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "results", "measured")
+    plot_error_vs_tile_size(
+        os.path.join(measured_dir, "tile_size_sweep.csv"), out_dir, results_dir=results_dir
+    )
+    plot_error_vs_problem_size(
+        os.path.join(measured_dir, "problem_size_sweep.csv"), out_dir, results_dir=results_dir
+    )
+
+    # Sensitivity analysis
+    plot_sensitivity_analysis(out_dir, results_dir=results_dir)
 
     avg_mape_primary = sum(r["mape_time_percent"] for r in primary_rows) / len(primary_rows)
     avg_mape_dram = sum(r.get("mape_dram_percent", 0.0) for r in primary_rows) / len(primary_rows)

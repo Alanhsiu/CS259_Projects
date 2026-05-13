@@ -1,0 +1,6 @@
+config,smwi_tile_ni,time_ms
+conv1,2,154.935
+conv1,4,94.086
+conv1,8,57.072
+conv1,16,56.777
+conv1,32,105.605
