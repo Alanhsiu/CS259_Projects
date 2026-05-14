@@ -480,13 +480,13 @@ Renders a roofline chart using model-predicted AI and GFLOPS (not measured data)
 
 6. **L2-pressure-aware correction**: log-linear, shape-aware correction effectively bridges the gap between ideal analytic traffic and real hardware behavior.
 
-### 10.2 Limitations
+<!-- ### 10.2 Limitations
 
 1. **tni=8/16 over-prediction (~16%)**: the model does not capture that at these tile sizes the kernel sits near the compute/memory crossover, and occupancy loss at tni=16 is partially masked by improved coalescing — the simple sqrt and power-law corrections are independent and miss this interaction.
 
 2. **Only two calibration points**: with Conv1 and Conv2, scale factors $s_c$ and $s_m$ are fitted from just two data points per kernel. More configurations would improve generalization.
 
-3. **K5 warp**: 21% MAPE. The cache-line model for the warp kernel is coarser (rounds of 32-thread reductions are harder to predict due to irregular coalescing patterns).
+3. **K5 warp**: 21% MAPE. The cache-line model for the warp kernel is coarser (rounds of 32-thread reductions are harder to predict due to irregular coalescing patterns). -->
 
 ---
 
@@ -522,23 +522,62 @@ Example placements:
 
 ## Figures
 
-### Error vs Problem Size
+### Model vs Measured Runtime (All Kernels)
 
-**Figure:** Error vs Problem Size — Model vs Measured runtime error across problem sizes (Ny = Nx ∈ {16,32,56,112,224}). The plot shows model error (MAPE) compared to the roofline baseline and highlights that the mechanistic model maintains low error as problem size grows.
+**Figure:** Measured vs Predicted Runtime (log scale) for all 12 kernel/config combinations. Demonstrates the model's accuracy across every kernel variant for both Conv1 and Conv2.
 
-![](results_default/error_vs_problem_size.png)
+<img src="results_default/model_vs_measured_time.png" width="100%" />
+
+### MAPE by Kernel
+
+**Figure:** Average MAPE (%) per kernel type, averaged over Conv1 and Conv2. Shows which kernels the model predicts most and least accurately.
+
+<img src="results_default/mape_by_kernel.png" width="100%" />
+
+### Model vs Roofline Comparison
+
+**Figure:** Roofline vs Hierarchical Model accuracy comparison — top panel shows absolute runtimes (measured / roofline / hierarchical) per kernel; bottom panel shows MAPE bars. The hierarchical model reduces average MAPE from ~97.5% (roofline) to ~9.3%.
+
+<img src="results_default/model_vs_roofline.png" width="100%" />
 
 ### Error vs Tile Size
 
 **Figure:** Error vs Tile Size — Tile sweep for the `smem_wi` kernel (smwi_tile_ni ∈ {2,4,8,16,32}). This figure illustrates the U-shaped performance curve: poor coalescing at small tile sizes and occupancy limits at large tile sizes; the model captures the sweet spot.
 
-![](results_default/error_vs_tile_size.png)
+<img src="results_default/error_vs_tile_size.png" width="100%" />
+
+### Error vs Problem Size
+
+**Figure:** Error vs Problem Size — Model vs Measured runtime error across problem sizes (Ny = Nx ∈ {16,32,56,112,224}). The plot shows model error (MAPE) compared to the roofline baseline and highlights that the mechanistic model maintains low error as problem size grows.
+
+<img src="results_default/error_vs_problem_size.png" width="100%" />
 
 ### Predicted Roofline (Model)
 
 **Figure:** Roofline predicted by the mechanistic model — AI vs predicted GFLOPS. This roofline uses model-predicted arithmetic intensity and predicted throughput (not measured), showing how kernels move relative to the compute/memory ridge under the model.
 
-![](results_default/roofline_predicted.png)
+<img src="results_default/roofline_predicted.png" width="100%" />
+
+### Predicted vs Measured DRAM Traffic
+
+**Figure:** Side-by-side comparison of ncu-measured DRAM bytes vs analytically predicted DRAM bytes (per kernel). MAPE labels on top of each bar pair. Average DRAM MAPE: ~5.4%.
+
+<img src="results_default/measured_vs_analytic_dram.png" width="100%" />
+
+### Architecture Sensitivity Analysis
+
+**Figure (DRAM Bandwidth):** Predicted runtime vs DRAM bandwidth multiplier (0.25× – 4×) for K3 smem_wi on Conv1 and Conv2. Conv1 is strongly bandwidth-sensitive; Conv2 is not.
+
+<img src="results_default/sensitivity_dram_bw_gb_s.png" width="100%" />
+
+**Figure (FP32 TFLOPS):** Predicted runtime vs FP32 peak TFLOPS multiplier. Conv2 is compute-bound and benefits strongly from more TFLOPS; Conv1 is insensitive.
+
+<img src="results_default/sensitivity_fp32_tflops.png" width="100%" />
+
+**Figure (L2 Cache Size):** Predicted runtime vs L2 cache size multiplier. Conv1 with small weights (144 KB) only sees an effect when L2 shrinks below the weight footprint.
+
+<img src="results_default/sensitivity_l2_bytes.png" width="100%" />
+
 ---
 
 ## Appendix C: Reproduction Instructions

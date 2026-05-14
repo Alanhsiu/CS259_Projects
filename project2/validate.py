@@ -100,7 +100,7 @@ def plot_model_vs_measured(rows, out_dir):
     x = np.arange(len(rows))
     w = 0.4
 
-    fig, ax = plt.subplots(figsize=(14, 5.5))
+    fig, ax = plt.subplots(figsize=(6.5, 4))
     ax.bar(x - w / 2, meas, width=w, color="#1a3880", label="Measured")
     ax.bar(x + w / 2, pred, width=w, color="#1a6870", label="Predicted")
 
@@ -113,8 +113,8 @@ def plot_model_vs_measured(rows, out_dir):
     ax.legend()
 
     out_path = os.path.join(out_dir, "model_vs_measured_time.png")
-    plt.tight_layout()
-    plt.savefig(out_path, dpi=150, bbox_inches="tight")
+    plt.tight_layout(pad=1.2)
+    plt.savefig(out_path, dpi=200, bbox_inches="tight", pad_inches=0.15)
     plt.close()
     print(f"Saved -> {out_path}")
 
@@ -132,7 +132,7 @@ def plot_mape_by_kernel(rows, out_dir):
             kernels.append(k)
             avg_mapes.append(sum(vals) / len(vals))
 
-    fig, ax = plt.subplots(figsize=(8.5, 4.5))
+    fig, ax = plt.subplots(figsize=(6.5, 3.5))
     ax.bar(kernels, avg_mapes, color="#c03820")
     ax.set_ylabel("Average MAPE (%)")
     ax.set_title("Primary Model Error by Kernel")
@@ -142,8 +142,8 @@ def plot_mape_by_kernel(rows, out_dir):
         ax.text(i, v + 0.5, f"{v:.1f}%", ha="center", fontsize=9)
 
     out_path = os.path.join(out_dir, "mape_by_kernel.png")
-    plt.tight_layout()
-    plt.savefig(out_path, dpi=150, bbox_inches="tight")
+    plt.tight_layout(pad=1.2)
+    plt.savefig(out_path, dpi=200, bbox_inches="tight", pad_inches=0.15)
     plt.close()
     print(f"Saved -> {out_path}")
 
@@ -163,7 +163,7 @@ def plot_roofline_predicted(rows, out_dir):
         filled = FILLED.get(r["kernel"], True)
         data[key] = (ai, gf, mk, col, filled)
 
-    fig, ax = plt.subplots(figsize=(13, 7))
+    fig, ax = plt.subplots(figsize=(6.5, 5.5))
     ax.set_xscale("log")
     ax.set_yscale("log")
 
@@ -209,8 +209,8 @@ def plot_roofline_predicted(rows, out_dir):
     ax.set_xlabel("Arithmetic Intensity (FLOPs / byte)", fontsize=11)
     ax.set_ylabel("Performance (GFLOPS)", fontsize=11)
     ax.set_title("Roofline – Predicted (hierarchical model)  |  NVIDIA TITAN V  (B=16)", fontsize=12)
-    ax.set_xlim(0.055, 1800)
-    ax.set_ylim(10, PEAK_FLOPS * 2.4)
+    ax.set_xlim(0.04, 2500)
+    ax.set_ylim(8, PEAK_FLOPS * 3.0)
     ax.grid(True, which="both", alpha=0.12)
 
     kernel_legend = [
@@ -230,8 +230,8 @@ def plot_roofline_predicted(rows, out_dir):
     ax.legend(handles=kernel_legend + layer_legend, fontsize=8.5, loc="lower right", ncol=2, framealpha=0.92)
 
     out_path = os.path.join(out_dir, "roofline_predicted.png")
-    plt.tight_layout()
-    plt.savefig(out_path, dpi=150, bbox_inches="tight")
+    plt.tight_layout(pad=1.2)
+    plt.savefig(out_path, dpi=200, bbox_inches="tight", pad_inches=0.15)
     plt.close()
     print(f"Saved -> {out_path}")
 
@@ -287,7 +287,7 @@ def plot_error_vs_tile_size(measured_csv_path: str, out_dir: str, results_dir: s
     model_mapes = [abs(p - m) / m * 100 for p, m in zip(predicted_times, measured_times)]
     roof_mapes  = [abs(roofline_time - m) / m * 100 for m in measured_times]
 
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 9))
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(6.5, 8))
 
     # ── top: runtime ───────────────────────────────────────────────────────
     ax1.plot(tile_nis, measured_times,  "o-",  color="#c03820", lw=2, ms=8, label="Measured")
@@ -321,8 +321,8 @@ def plot_error_vs_tile_size(measured_csv_path: str, out_dir: str, results_dir: s
     print(f"  Tile sweep — model avg MAPE: {avg_m:.1f}%  roofline avg MAPE: {avg_r:.1f}%")
 
     out_path = os.path.join(out_dir, "error_vs_tile_size.png")
-    plt.tight_layout()
-    plt.savefig(out_path, dpi=150, bbox_inches="tight")
+    plt.tight_layout(pad=1.2)
+    plt.savefig(out_path, dpi=200, bbox_inches="tight", pad_inches=0.15)
     plt.close()
     print(f"Saved -> {out_path}")
 
@@ -371,7 +371,7 @@ def plot_error_vs_problem_size(measured_csv_path: str, out_dir: str, results_dir
     model_mapes = [abs(p - m) / m * 100 for p, m in zip(predicted_times, measured_times)]
     roof_mapes  = [abs(r - m) / m * 100 for r, m in zip(roofline_times,  measured_times)]
 
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 9))
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(6.5, 8))
 
     # ── top: runtime ───────────────────────────────────────────────────────
     ax1.plot(problem_sizes, measured_times,  "o-",  color="#1a3880", lw=2, ms=8, label="Measured")
@@ -404,11 +404,128 @@ def plot_error_vs_problem_size(measured_csv_path: str, out_dir: str, results_dir
     print(f"  Problem sweep — model avg MAPE: {avg_m:.1f}%  roofline avg MAPE: {avg_r:.1f}%")
 
     out_path = os.path.join(out_dir, "error_vs_problem_size.png")
-    plt.tight_layout()
-    plt.savefig(out_path, dpi=150, bbox_inches="tight")
+    plt.tight_layout(pad=1.2)
+    plt.savefig(out_path, dpi=200, bbox_inches="tight", pad_inches=0.15)
     plt.close()
     print(f"Saved -> {out_path}")
 
+
+
+def plot_model_vs_roofline(rows, out_dir):
+    """Bar chart: roofline MAPE vs hierarchical model MAPE for all kernels/configs.
+
+    Three-group bar chart per label: measured (ground truth reference bar),
+    roofline prediction, and hierarchical model prediction.
+    """
+    from roofline import roofline as roofline_predict
+
+    CONFIGS_MAP = {
+        "conv1": (16, 224, 224, 64, 64),
+        "conv2": (16, 14, 14, 512, 512),
+    }
+
+    labels = []
+    meas_times, roof_times, pred_times = [], [], []
+    roof_mapes, model_mapes = [], []
+
+    for r in rows:
+        cfg = r["cfg"]
+        if cfg not in CONFIGS_MAP:
+            continue
+        B, Ny, Nx, Ni, Nn = CONFIGS_MAP[cfg]
+        rf = roofline_predict(B, Ny, Nx, Ni, Nn)
+        roof_ms = rf["predicted_time_ms"]
+        meas_ms = r["measured_ms"]
+        pred_ms = r["predicted_ms"]
+
+        labels.append(f"{cfg[-1]}.{r['kernel']}")
+        meas_times.append(meas_ms)
+        roof_times.append(roof_ms)
+        pred_times.append(pred_ms)
+        roof_mapes.append(abs(roof_ms - meas_ms) / meas_ms * 100)
+        model_mapes.append(abs(pred_ms - meas_ms) / meas_ms * 100)
+
+    n = len(labels)
+    x = np.arange(n)
+    w = 0.28
+
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(6.5, 9))
+
+    # ── top: absolute runtimes ─────────────────────────────────────────────
+    ax1.bar(x - w, meas_times, width=w, color="#1a3880", label="Measured")
+    ax1.bar(x,     roof_times, width=w, color="#aaaaaa", label="Roofline")
+    ax1.bar(x + w, pred_times, width=w, color="#c03820", label="Hierarchical model")
+    ax1.set_yscale("log")
+    ax1.set_ylabel("Runtime (ms, log scale)", fontsize=11)
+    ax1.set_title("Measured vs Roofline vs Hierarchical Model — all kernels", fontsize=13)
+    ax1.set_xticks(x)
+    ax1.set_xticklabels(labels, rotation=35, ha="right", fontsize=9)
+    ax1.grid(axis="y", alpha=0.3)
+    ax1.legend(fontsize=10)
+
+    # ── bottom: MAPE comparison ────────────────────────────────────────────
+    ax2.bar(x - w / 2, roof_mapes,  width=w, color="#aaaaaa", label="Roofline MAPE")
+    ax2.bar(x + w / 2, model_mapes, width=w, color="#c03820", label="Hierarchical MAPE")
+    for i, (rm, mm) in enumerate(zip(roof_mapes, model_mapes)):
+        ax2.text(i - w / 2, rm + 1, f"{rm:.0f}%", ha="center", fontsize=7, color="#555")
+        ax2.text(i + w / 2, mm + 1, f"{mm:.1f}%", ha="center", fontsize=7, color="#c03820")
+    ax2.set_xlabel("Kernel", fontsize=11)
+    ax2.set_ylabel("MAPE (%)", fontsize=11)
+    ax2.set_title("Roofline MAPE vs Hierarchical Model MAPE", fontsize=12)
+    ax2.set_xticks(x)
+    ax2.set_xticklabels(labels, rotation=35, ha="right", fontsize=9)
+    ax2.grid(axis="y", alpha=0.3)
+    ax2.legend(fontsize=10)
+
+    avg_roof = sum(roof_mapes) / len(roof_mapes)
+    avg_model = sum(model_mapes) / len(model_mapes)
+    print(f"  Roofline avg MAPE: {avg_roof:.1f}%   Hierarchical avg MAPE: {avg_model:.1f}%")
+
+    out_path = os.path.join(out_dir, "model_vs_roofline.png")
+    plt.tight_layout(pad=1.2)
+    plt.savefig(out_path, dpi=200, bbox_inches="tight", pad_inches=0.15)
+    plt.close()
+    print(f"Saved -> {out_path}")
+
+
+def plot_measured_vs_analytic_dram(rows, out_dir):
+    """Side-by-side comparison of predicted DRAM bytes vs ncu-measured DRAM bytes."""
+    labels = [f"{r['cfg']}_{r['kernel']}" for r in rows]
+    pred_dram = np.array([r["dram_GB_used"] for r in rows], dtype=float)
+
+    # Derive measured DRAM GB from: flops = measured_tflops * measured_ms * 1e9 ops,
+    # then dram_gb = flops / measured_ai / 1e9 = measured_tflops * measured_ms / measured_ai
+    meas_dram = np.array(
+        [r["measured_tflops"] * r["measured_ms"] / r["measured_ai"]
+         if r.get("measured_ai", 0) > 0 else 0.0
+         for r in rows],
+        dtype=float,
+    )
+
+    if not np.any(meas_dram > 0):
+        return
+
+    x = np.arange(len(rows))
+    w = 0.4
+    fig, ax = plt.subplots(figsize=(6.5, 4))
+    ax.bar(x - w / 2, meas_dram, width=w, color="#1a3880", label="Measured (ncu)")
+    ax.bar(x + w / 2, pred_dram, width=w, color="#1a6870", label="Predicted (analytic)")
+    ax.set_ylabel("DRAM traffic (GB)")
+    ax.set_title("Predicted vs Measured DRAM Traffic — all kernels")
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, rotation=35, ha="right")
+    ax.grid(axis="y", alpha=0.3)
+    ax.legend()
+
+    for i, (m, p) in enumerate(zip(meas_dram, pred_dram)):
+        mape_v = abs(p - m) / m * 100 if m > 0 else 0
+        ax.text(i, max(m, p) + 0.05, f"{mape_v:.0f}%", ha="center", fontsize=7, color="#555")
+
+    out_path = os.path.join(out_dir, "measured_vs_analytic_dram.png")
+    plt.tight_layout(pad=1.2)
+    plt.savefig(out_path, dpi=200, bbox_inches="tight", pad_inches=0.15)
+    plt.close()
+    print(f"Saved -> {out_path}")
 
 
 def plot_sensitivity_analysis(out_dir: str, results_dir: str = None):
@@ -447,7 +564,7 @@ def plot_sensitivity_analysis(out_dir: str, results_dir: str = None):
     ]
 
     for param_name, param_key, x_label, color in sweep_params:
-        fig, axes = plt.subplots(1, len(configs), figsize=(13, 5), sharey=False)
+        fig, axes = plt.subplots(1, len(configs), figsize=(6.5, 3.5), sharey=False)
         fig.suptitle(f"Sensitivity: {param_name}  |  K3 smem_wi", fontsize=13)
 
         for ax, (cfg_name, B, Ny, Nx, Ni, Nn) in zip(axes, configs):
@@ -499,8 +616,8 @@ def plot_sensitivity_analysis(out_dir: str, results_dir: str = None):
             ax.grid(True, alpha=0.2)
 
         fname = f"sensitivity_{param_key}.png"
-        plt.tight_layout()
-        plt.savefig(os.path.join(out_dir, fname), dpi=150, bbox_inches="tight")
+        plt.tight_layout(pad=1.2)
+        plt.savefig(os.path.join(out_dir, fname), dpi=200, bbox_inches="tight", pad_inches=0.15)
         plt.close()
         print(f"Saved -> {os.path.join(out_dir, fname)}")
 
@@ -576,6 +693,8 @@ def main():
     plot_model_vs_measured(primary_rows, out_dir)
     plot_mape_by_kernel(primary_rows, out_dir)
     plot_roofline_predicted(primary_rows, out_dir)
+    plot_model_vs_roofline(primary_rows, out_dir)
+    plot_measured_vs_analytic_dram(primary_rows, out_dir)
     
     # Plot sweep results if available
     measured_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "results", "measured")
