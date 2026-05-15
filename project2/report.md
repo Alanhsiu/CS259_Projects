@@ -1,11 +1,7 @@
 # CS259 Project 2: Hierarchical Performance Model for Convolution Kernels
-
-## Executive Summary
-
-This report documents the design and implementation of a **mechanistic hierarchical performance model** for 6 convolution kernel variants (naive, smem_w, unroll, smem_wi, regblock, warp) on NVIDIA TITAN V. The model predicts execution time by analyzing three competing bottlenecks at every level of the memory hierarchy:
-
 $$
-\text{predicted\_time} = \max\!\left(s_c \cdot t_\text{compute},\; t_\text{L2},\; s_m \cdot t_\text{DRAM}\right)
+input_{\text{lines}} = B \cdot N_y \cdot N_x \cdot N_n \cdot \left\lceil \frac{K_y K_x N_i}{warp_{\text{size}}} \right\rceil, \\\qquad
+DRAM_{\text{warp}} = 128 \times input_{\text{lines}} + \text{weights} + \text{output}
 $$
 
 The three terms correspond to:
@@ -30,7 +26,7 @@ The classic **roofline model** predicts performance by placing kernels on a 2D c
 - **Roof**: Two lines forming an envelope — compute roof (horizontal) and memory roof (diagonal)
 
 $$
-\text{predicted\_time\_s} = \max\!\left( \frac{\text{FLOPs}}{\text{peak\_FP32}},\; \frac{\text{DRAM\_bytes}}{\text{peak\_BW}} \right)
+predicted_{\text{time},s} = \max\!\left( \frac{\text{FLOPs}}{peak_{\text{FP32}}},\; \frac{DRAM_{\text{bytes}}}{peak_{\text{BW}}} \right)
 $$
 
 **Why roofline alone is insufficient:**
@@ -58,9 +54,9 @@ $$
 **Key tensors** (float32):
 | Tensor | Shape | Size |
 |---|---|---|
-| Weights | $(K_y, K_x, N_i, N_n)$ | $K_y K_x N_i N_n \times 4$ bytes |
-| Input (padded) | $(B, N_y{+}K_y{-}1, N_x{+}K_x{-}1, N_i)$ | $B(N_y{+}2)(N_x{+}2)N_i \times 4$ bytes |
-| Output | $(B, N_y, N_x, N_n)$ | $B N_y N_x N_n \times 4$ bytes |
+| Weights | K_y, K_x, N_i, N_n | K_y * K_x * N_i * N_n * 4 bytes |
+| Input (padded) | B, N_y + K_y - 1, N_x + K_x - 1, N_i | B * (N_y + 2)(N_x + 2) * N_i * 4 bytes |
+| Output | B, N_y, N_x, N_n | B * N_y * N_x * N_n * 4 bytes |
 
 ### 2.1 K0: Naive
 
@@ -93,9 +89,9 @@ $$
 
 Note: $\text{tni}$ cancels algebraically — the total input DRAM traffic is independent of tile size when coalescing is perfect. The tile size matters through **coalescing efficiency** and **occupancy** (see Part 2b).
 
-**Weight traffic** — if weights fit in L2 ($K_y K_x N_i N_n \times 4 < \text{L2\_size}$), weight re-reads are served from L2, not DRAM:
+**Weight traffic** — if weights fit in L2 (K_y * K_x * N_i * N_n * 4 < L2_size), weight re-reads are served from L2, not DRAM:
 $$
-\text{DRAM}_\text{weight} = \min\!\left(\text{syn\_bytes},\; \text{syn\_bytes} \times \frac{B \cdot N_n}{\text{num\_SMs}}\right)
+DRAM_{\text{weight}} = \min\!\left(syn_{\text{bytes}},\; syn_{\text{bytes}} \times \frac{B \cdot N_n}{num_{\text{SMs}}}\right)
 $$
 
 **Conv1 example** (Ny=224, Ni=Nn=64): weights = 144 KB ≪ 4.5 MB L2 → loaded once; input patches = 15.4 GB → exceeds L2 significantly.
@@ -106,21 +102,16 @@ $$
 
 Each thread computes `REG_N = 4` consecutive output channels, reusing each input value 4× before discarding:
 $$
-\text{DRAM}_\text{regblock} = \frac{\text{input\_naive}}{N_\text{reg}} + \text{weights} + \text{output}
+DRAM_{\text{regblock}} = \frac{input_{\text{naive}}}{N_\text{reg}} + \text{weights} + \text{output}
 $$
 
 ### 2.6 K5: warp (Warp-Level ni Reduction)
 
 32 threads cooperate on one output element, partitioning the dot product across lanes. Cache-line granularity:
 $$
-\text{input\_lines} = B \cdot N_y \cdot N_x \cdot N_n \cdot \left\lceil \frac{K_y K_x N_i}{\text{warp\_size}} \right\rceil, \qquad
-\text{DRAM}_\text{warp} = 128 \times \text{input\_lines} + \text{weights} + \text{output}
+input_{\text{lines}} = B \cdot N_y \cdot N_x \cdot N_n \cdot \left\lceil \frac{K_y K_x N_i}{warp_{\text{size}}} \right\rceil, \\\qquad
+DRAM_{\text{warp}} = 128 \times input_{\text{lines}} + \text{weights} + \text{output}
 $$
-
----
-
-## Part 2b: Occupancy and Coalescing Model for K3 smem\_wi
-
 The K3 smem\_wi kernel exposes two additional hardware effects that cannot be captured by DRAM traffic alone: **SM occupancy** (limited by shared memory per block) and **cache-line coalescing efficiency** (determined by how many channels are loaded per iteration).
 
 ### Occupancy Model
@@ -148,10 +139,10 @@ Low occupancy hurts latency hiding: fewer concurrent warps are available to over
 
 ### Coalescing Model
 
-A 32-thread warp splits into $(32 / \text{tni})$ sub-groups, each loading `tni` consecutive floats from the same $(l_y, l_x)$ position. A 128-byte cache line holds **32 floats**; each sub-group uses $\min(\text{tni}, 32)$ of those 32 slots:
+A 32-thread warp splits into (32 / tni) sub-groups, each loading `tni` consecutive floats from the same (l_y, l_x) position. A 128-byte cache line holds **32 floats**; each sub-group uses min(tni, 32) of those 32 slots:
 
 $$
-\text{coalesce\_efficiency} = \frac{\min(\text{tni},\; 32)}{32}
+coalesce_{\text{efficiency}} = \frac{\min(\text{tni},\; 32)}{32}
 $$
 
 | tni | floats/sub-group | cache-line utilization |
@@ -174,7 +165,7 @@ t_\text{compute}(\text{tni}) = t_\text{compute,ref} \times \sqrt{\frac{\text{occ
 $$
 
 $$
-t_\text{mem}(\text{tni}) = t_\text{mem,ref} \times \left(\frac{\text{coalesce\_eff}_\text{ref}}{\text{coalesce\_eff}(\text{tni})}\right)^{0.6}
+t_\text{mem}(\text{tni}) = t_\text{mem,ref} \times \left(\frac{coalesce_{\text{eff,ref}}}{coalesce_{\text{eff}}(\text{tni})}\right)^{0.6}
 \quad\text{(exponent < 1: L1 re-use dampens raw cache-line waste)}
 $$
 
@@ -182,7 +173,7 @@ $$
 \text{predicted}(\text{tni}) = \max\!\left(s_c \cdot t_\text{compute}(\text{tni}),\; t_\text{L2},\; s_m \cdot t_\text{mem}(\text{tni})\right)
 $$
 
-where $s_c, s_m$ are the same fitted scale factors as the base model and $t_\text{L2}$ is the time to serve L2-resident weight reuse (typically small, sub-ms for Conv1).
+where s_c, s_m are the same fitted scale factors as the base model and t_L2 is the time to serve L2-resident weight reuse (typically small, sub-ms for Conv1).
 
 **Validation result** (Conv1 224×224 smem\_wi sweep):
 
@@ -205,7 +196,7 @@ The tni=8/16 over-prediction (~16–18%) occurs because at those tile sizes the 
 ### 3.1 L2 Cache Pressure Metric
 
 $$
-\text{L2\_pressure} = \frac{\max(\text{weight\_bytes},\; \text{input\_bytes},\; \text{output\_bytes})}{\text{L2\_size}}
+L2_{\text{pressure}} = \frac{\max(weight_{\text{bytes}},\; input_{\text{bytes}},\; output_{\text{bytes}})}{L2_{\text{size}}}
 $$
 
 TITAN V L2 = 4.5 MB.
@@ -221,15 +212,15 @@ TITAN V L2 = 4.5 MB.
 The analytic DRAM estimate may under- or over-estimate real traffic due to conflict misses, coalescing gaps, and prefetch inefficiency. We fit a **per-kernel log-linear correction**:
 
 $$
-\text{DRAM\_corrected} = \text{DRAM\_analytic} \times \exp\!\big(a + b \cdot \log(\text{L2\_pressure})\big)
+DRAM_{\text{corrected}} = DRAM_{\text{analytic}} \times \exp\!\big(a + b \cdot \log(L2_{\text{pressure}})\big)
 $$
 
 Fitting (per kernel, using Conv1 and Conv2 measurements):
-1. Compute $\text{DRAM\_analytic}$ for each sample.
-2. Compute $r_i = \text{DRAM\_measured}_i / \text{DRAM\_analytic}_i$.
-3. Fit $\log r = a + b \log(\text{L2\_pressure})$ by linear regression.
+1. Compute DRAM_analytic for each sample.
+2. Compute r_i = DRAM_measured,i / DRAM_analytic,i.
+3. Fit log r = a + b * log(L2_pressure) by linear regression.
 
-Correction is clamped to $[0.05,\; 20]$ to prevent extrapolation blow-up. When the correction factor is **< 1**, the analytic model over-estimated traffic and some data was served from L2, not DRAM.
+Correction is clamped to [0.05, 20] to prevent extrapolation blow-up. When the correction factor is **< 1**, the analytic model over-estimated traffic and some data was served from L2, not DRAM.
 
 ---
 
@@ -240,36 +231,36 @@ Correction is clamped to $[0.05,\; 20]$ to prevent extrapolation blow-up. When t
 For each prediction we compute three ideal times:
 
 $$
-t_\text{compute} = \frac{\text{FLOPs}}{\text{peak\_FP32}} \times 10^{-9}
+t_\text{compute} = \frac{\text{FLOPs}}{peak_{\text{FP32}}} \times 10^{-9}
 $$
 
 $$
-t_\text{DRAM} = \frac{\text{DRAM\_bytes\_corrected}}{\text{DRAM\_BW}} \times 10^{-9}
+t_\text{DRAM} = \frac{DRAM_{\text{bytes,corrected}}}{DRAM_{\text{BW}}} \times 10^{-9}
 $$
 
 $$
-t_\text{L2} = \frac{\text{L2\_bytes}}{\text{L2\_BW}} \times 10^{-9}
+t_\text{L2} = \frac{L2_{\text{bytes}}}{L2_{\text{BW}}} \times 10^{-9}
 $$
 
 **L2 bytes** are estimated in two cases:
 
 - **Case A** (correction < 1): some analytic traffic was served from L2, not DRAM.
-  $$\text{L2\_bytes} = \max(0,\; \text{DRAM\_analytic} - \text{DRAM\_corrected})$$
+  $$L2_{\text{bytes}} = \max(0,\; DRAM_{\text{analytic}} - DRAM_{\text{corrected}})$$
 
 - **Case B** (weight tensor fits in L2): blocks re-read weights from L2, not DRAM.
-  $$\text{L2\_bytes} = \max(0,\; \text{total\_weight\_analytic\_loads} - \text{syn\_bytes})$$
+  $$L2_{\text{bytes}} = \max(0,\; total_{\text{weight analytic loads}} - syn_{\text{bytes}})$$
 
   For Conv1 smem\_wi: weights = 144 KB ≪ L2 → L2 serves all inter-block weight reuse ($t_\text{L2} \approx 5.3$ ms). For Conv2 smem\_wi: weights = 9.4 MB > L2 → L2 bytes ≈ 0.
 
 ### 4.2 Per-Kernel Scaling Factors
 
-Real hardware rarely achieves ideal times. Scale factors $s_c$ (compute) and $s_m$ (memory) absorb stalls, occupancy losses, and other microarchitectural overheads. L2 is assumed to run at rated bandwidth ($s_\text{L2} = 1.0$, unscaled) because L2 latency/bandwidth is relatively predictable.
+Real hardware rarely achieves ideal times. Scale factors s_c (compute) and s_m (memory) absorb stalls, occupancy losses, and other microarchitectural overheads. L2 is assumed to run at rated bandwidth (s_L2 = 1.0, unscaled) because L2 latency/bandwidth is relatively predictable.
 
 $$
-\text{predicted\_time} = \max\!\left(s_c \cdot t_\text{compute},\; t_\text{L2},\; s_m \cdot t_\text{DRAM}\right)
+predicted_{\text{time}} = \max\!\left(s_c \cdot t_\text{compute},\; t_\text{L2},\; s_m \cdot t_\text{DRAM}\right)
 $$
 
-The fitting minimizes MAPE via a grid search over $s_c, s_m \in [0.5,\; 128]$. Both the fitting loop and the prediction call use the same three-term `max()` so the calibration is consistent.
+The fitting minimizes MAPE via a grid search over s_c, s_m in 0.5 to 128. Both the fitting loop and the prediction call use the same three-term `max()` so the calibration is consistent.
 
 **Bottleneck identification:** the model reports which term dominates — `"compute"`, `"l2"`, or `"memory"` — enabling kernel-specific optimization insight.
 
@@ -288,8 +279,8 @@ The fitting minimizes MAPE via a grid search over $s_c, s_m \in [0.5,\; 128]$. B
 ### 5.1 Dataset
 
 We validate on two convolution configurations:
-1. **Conv1**: 224×224 input, 64→64 channels, $K_y = K_x = 3$, $B = 16$.
-2. **Conv2**: 14×14 input, 512→512 channels, $K_y = K_x = 3$, $B = 16$.
+1. **Conv1**: 224×224 input, 64→64 channels, K_y = K_x = 3, B = 16.
+2. **Conv2**: 14×14 input, 512→512 channels, K_y = K_x = 3, B = 16.
 
 Measured data: kernel runtime (ms) from GPU CUDA events, DRAM bytes (read + write) from Nsight Compute `dram__bytes_read.sum` / `dram__bytes_write.sum`.
 
@@ -425,7 +416,7 @@ $$
 | `_analytic_dram_bytes()` | Per-kernel analytic DRAM traffic |
 | `_hierarchical_ideal_times_ms()` | Three-level ideal times: compute, L2, DRAM |
 | `_fit_traffic_correction()` | Log-linear DRAM correction per kernel |
-| `_fit_kernel_scalers()` | Grid-search $s_c, s_m$ using the three-level `max()` |
+| `_fit_kernel_scalers()` | Grid-search s_c, s_m using the three-level `max()` |
 | `predict_sample()` | Predict time + bottleneck label for a sample |
 | `evaluate()` | Full pipeline (load, fit, predict) |
 | `compute_smwi_occupancy()` | SM occupancy vs smwi\_tile\_ni |
@@ -468,13 +459,13 @@ Renders a roofline chart using model-predicted AI and GFLOPS (not measured data)
 
 ### 10.1 What Worked Well
 
-1. **Three-level hierarchical bottleneck**: including L2 as an active term in `max(s_c·t_c, t_L2, s_m·t_DRAM)` makes the model architecturally complete. For Conv1 smem\_wi, the L2 term captures weight reuse ($t_\text{L2} \approx 5.3$ ms), which becomes visible when DRAM bandwidth improves.
+1. **Three-level hierarchical bottleneck**: including L2 as an active term in `max(s_c·t_c, t_L2, s_m·t_DRAM)` makes the model architecturally complete. For Conv1 smem\_wi, the L2 term captures weight reuse (t_L2 ~ 5.3 ms), which becomes visible when DRAM bandwidth improves.
 
 2. **L2 traffic estimation for both correction directions**: the model correctly handles both cases — when the correction factor < 1 (analytic over-estimated, difference served from L2) and when the weight tensor fits in L2 (L2 serves repeated weight accesses across spatial tiles).
 
 3. **Occupancy + coalescing model for tile sweep**: correctly identifies the U-shaped performance curve: coalescing waste dominates at small tni (memory bottleneck), smem-limited occupancy dominates at large tni (compute bottleneck). Achieves 10.5% average MAPE vs 95.1% for roofline.
 
-4. **Correct coalescing formula**: each 128-byte cache line holds 32 floats; coalescing efficiency = $\min(\text{tni}, 32)/32$, not $\min(\text{tni}, 16)/16$. This ensures predictions for tni=32 (100% coalescing) differ correctly from tni=16 (50%).
+4. **Correct coalescing formula**: each 128-byte cache line holds 32 floats; coalescing efficiency = min(tni, 32)/32, not min(tni, 16)/16. This ensures predictions for tni=32 (100% coalescing) differ correctly from tni=16 (50%).
 
 5. **Bottleneck identification**: `predict_sample()` now returns a `"bottleneck"` key (`"compute"`, `"l2"`, or `"memory"`), enabling automatic identification of the limiting resource for any configuration.
 
